@@ -13,14 +13,13 @@ int main(int argc,char* argv[]){
 	int n=length/h;
 	int num_of_elements = n*n;
 	int num_of_nodes=(n+1)*(n+1);
-	//float a=0;
 	//nodes information
 	float nodes[num_of_nodes][3];
 	for (i=0;i<num_of_nodes;i++)
 	{
 		int a=i/(n+1);
 		nodes[i][0]=i;
-		nodes[i][1]=(i-a*n)*h;
+		nodes[i][1]=(i-a*(n+1))*h;
 		nodes[i][2]=a*h;
 	}
 	//elements information
@@ -35,18 +34,6 @@ int main(int argc,char* argv[]){
 		elements[i][4]=i+a+n+2;
 		
 	}
-	//float x[number+1][number+1];
-	//float y[number+1][number+1];
-	//for(i=0;i<number+1;i++)
-	//{
-	//	for(j=0;j<number+1;j++)
-	//	{
-	//		x[i][j]=0;			
-	//		x[i][j]=j*h;
-	//		y[i][j]=0;
-	//		y[i][j]=i*h;
-	//	}
-	//}
 	printf("nodes[%d][%d] is : \n",n+1,n+1);
 	for(i = 0;i<num_of_nodes;i++)
 	{
