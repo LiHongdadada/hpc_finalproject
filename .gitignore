@@ -1,3 +1,4 @@
 *.o
 grid
 plog
+*.exe
