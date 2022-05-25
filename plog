@@ -1,14 +1,14 @@
 Sender: LSF System <lsfadmin@r01n21>
-Subject: Job 3762061: <final_project> in cluster <sustchpc> Done
+Subject: Job 3762085: <final_project> in cluster <sustchpc> Done
 
-Job <final_project> was submitted from host <login05> by user <mae-mawb> in cluster <sustchpc> at Wed May 25 12:16:44 2022.
-Job was executed on host(s) <4*r01n21>, in queue <ser>, as user <mae-mawb> in cluster <sustchpc> at Wed May 25 12:16:44 2022.
+Job <final_project> was submitted from host <login05> by user <mae-mawb> in cluster <sustchpc> at Wed May 25 12:28:19 2022.
+Job was executed on host(s) <4*r01n21>, in queue <ser>, as user <mae-mawb> in cluster <sustchpc> at Wed May 25 12:28:19 2022.
                             <1*r01n07>
 </work/mae-mawb> was used as the home directory.
 </work/mae-mawb/hpc_finalproject> was used as the working directory.
-Started at Wed May 25 12:16:44 2022.
-Terminated at Wed May 25 12:16:45 2022.
-Results reported at Wed May 25 12:16:45 2022.
+Started at Wed May 25 12:28:19 2022.
+Terminated at Wed May 25 12:28:21 2022.
+Results reported at Wed May 25 12:28:21 2022.
 
 Your job looked like:
 
@@ -20,7 +20,7 @@ Your job looked like:
 #BSUB -e plog
 #BSUB -o plog
 
-./pj 0.1
+./grid 0.1
 
 ------------------------------------------------------------
 
@@ -37,7 +37,7 @@ Resource usage summary:
     Max Processes :                              -
     Max Threads :                                -
     Run time :                                   1 sec.
-    Turnaround time :                            1 sec.
+    Turnaround time :                            2 sec.
 
 The output (if any) follows:
 
