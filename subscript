@@ -1,0 +1,7 @@
+#! /bin/bash
+#BSUB -J final_project
+#BSUB -q ser
+#BSUB -e plog
+#BSUB -o plog
+
+./grid 0.1
