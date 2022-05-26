@@ -1,7 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
-#include<math.h>
 
 # define PI 3.14159265
 
@@ -135,8 +134,8 @@ void A_matrix(float A[][4], float B[][4], float A1[][4])
 	}
 	
 }
-void assemble_G_A()
+/*void assemble_G_A()
 {
 	
 }
-
+*/
