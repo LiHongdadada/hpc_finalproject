@@ -55,9 +55,9 @@ int main(/*int argc, char *argv[]*/)
 
 	/************single*****************/
 	printf("single A matrix:\n");
-	for (int i = 0; i < num_of_nodes; i++)
+	for (int i = 0; i < 4; i++)
 	{
-		for (int j = 0; j < num_of_nodes; j++)
+		for (int j = 0; j < 4; j++)
 		{
 			printf("%lf ",A[i][j]);
 		}
@@ -66,23 +66,17 @@ int main(/*int argc, char *argv[]*/)
 
 	printf("single Q matrix:\n");
 
-	for (int j = 0; j < num_of_nodes; j++)
+	for (int j = 0; j < 4; j++)
 	{
 		printf("%f \n",Q[j]);
 	}
 	printf("\n");
 
-	printf("single q matrix:\n");
-	for (int j = 0; j < num_of_nodes; j++)
-	{
-		printf("%lf ",q[j]);
-	}
-	printf("\n");
 
 	printf("single B matrix:\n");
-	for (int i = 0; i < num_of_nodes; i++)
+	for (int i = 0; i < 4; i++)
 	{
-		for (int j = 0; j < num_of_nodes; j++)
+		for (int j = 0; j < 4; j++)
 		{
 			printf("%lf ",B[i][j]);
 		}
