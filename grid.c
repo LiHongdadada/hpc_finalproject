@@ -280,7 +280,7 @@ void assembel_G_Q(double *G_Q, double h, double nodes[][3], int num_of_elements,
 	free(Q);
 }
 
-// assemble G_q there is some errors. remember to inititalize G_q. Lihd don't konw how to inititalize
+
 void assemble_G_q(double *G_q, int num_of_nodes, int n,double h)
 {
 	// double G_q[num_of_nodes]={0};
@@ -291,14 +291,37 @@ void assemble_G_q(double *G_q, int num_of_nodes, int n,double h)
 		G_q[i]=0;
 	}
 	
-	for (i = n * (n + 1); i < num_of_nodes; i++)
+	for (i = n * (n + 1); i < num_of_nodes; ++i)
 	{
-		G_q[i] += h * h1 / 2;
+		if (i == n * (n + 1) )
+		{
+			G_q[i] += h * h1 / 2;
+		}
+		else if(i != n * (n + 1) && i != num_of_nodes-1)
+		{
+			G_q[i] += h * h1;
+		}
+		else if(i == num_of_nodes-1)
+		{
+			G_q[i] += h * h1 / 2;
+		}
+
 	}
 	int j = 0;
 	for (j = n; j < num_of_nodes; j += n + 1)
 	{
-		G_q[j] += h * h1 / 2;
+		if (j==n)
+		{		
+			G_q[j] += h * h1 / 2;
+		}
+		else if (j != n && j != num_of_nodes-1)
+		{
+			G_q[j] += h * h1;
+		}
+		else if (j == num_of_nodes-1)
+		{		
+			G_q[j] += h * h1 / 2;
+		}
 	}
 }
 
