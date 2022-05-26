@@ -53,6 +53,43 @@ int main(int argc, char *argv[])
 	B_matrix(B, h);
 	A_matrix(A, B, A1);
 
+	/************single*****************/
+	printf("single A matrix:\n");
+	for (int i = 0; i < num_of_nodes; i++)
+	{
+		for (int j = 0; j < num_of_nodes; j++)
+		{
+			printf("%lf ",A[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf("single Q matrix:\n");
+
+	for (int j = 0; j < num_of_nodes; j++)
+	{
+		printf("%lf ",Q[j]);
+	}
+	printf("\n");
+
+	printf("single q matrix:\n");
+	for (int j = 0; j < num_of_nodes; j++)
+	{
+		printf("%lf ",q[j]);
+	}
+	printf("\n");
+
+	printf("single B matrix:\n");
+	for (int i = 0; i < num_of_nodes; i++)
+	{
+		for (int j = 0; j < num_of_nodes; j++)
+		{
+			printf("%lf ",B[i][j]);
+		}
+		printf("\n");
+	}
+
+	/***********global***************/
 	assemble_G_A(G_A,A,num_of_elements,num_of_nodes,elements);
 	printf("global A matrix:\n");
 	for (int i = 0; i < num_of_nodes; i++)
@@ -90,7 +127,7 @@ int main(int argc, char *argv[])
 			printf("%lf ",G_B[i][j]);
 		}
 		printf("\n");
-	};
+	}
 
 	// free matrices
 	freeMatrix(G_A);
