@@ -12,6 +12,7 @@ void elements_matrix(int elements[][5], int num_of_elements, int n);
 void nodes_matrix(float nodes[][3], int num_of_nodes, int n, float h);
 void A_matrix(float A[][4], float B[][4], float A1[][4]);
 void assemble_G_A(float** G_A, float A[][4], int num_of_elements, int num_of_nodes, int elments[][5]);
+void assemble_G_q(float** G_q, float q[], int num_of_nodes, int n, int elments[][5]);
 float** mallocMatrix(int row, int col);
 void freeMatrix(double** a);
 
@@ -38,8 +39,8 @@ int main(int argc, char *argv[])
 	float A[4][4] = {0};
 	float** G_A=mallocMatrix(num_of_nodes,num_of_nodes);
 	float** G_B=mallocMatrix(num_of_nodes,num_of_nodes);
-	float** G_Q=mallocMatrix(num_of_nodes,num_of_nodes);
-	float** G_q=mallocMatrix(num_of_nodes,num_of_nodes);
+	//float** G_Q=mallocMatrix(num_of_nodes,num_of_nodes);
+	//float** G_q=mallocMatrix(num_of_nodes,num_of_nodes);
 
 	// inititalize matrices.
 	q_matrix(q, h);
@@ -154,8 +155,24 @@ void assemble_G_A(float** G_A, float A[][4], int num_of_elements, int num_of_nod
 
 
 }
-
-
+// assemble G_q there is some errors. remember to inititalize G_q. Lihd don't konw how to inititalize
+void assemble_G_q(float** G_q, float q[], int num_of_nodes, int n, int elments[][5])
+{
+	//float G_q[num_of_nodes]={0};
+	int h = 1/n;
+	int h1 = 1; //heat flux
+	int i = 0;
+	for (i = n*(n+1); i < num_of_nodes; i++)
+	{
+		G_q[i] +=h*h1/2;
+	}
+	int j=0;
+	for (j = n; j < num_of_nodes; j +=n+1)
+	{
+		G_q[j] +=h*h1/2;
+	}
+}
+//
 float** mallocMatrix(int row, int col)
 {
         double** ret = (double**)malloc(sizeof(double*) * row);  //a row pointer 
