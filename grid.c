@@ -17,13 +17,13 @@ void assemble_G_q(double *G_q, int num_of_nodes, int n,double h);
 double **mallocMatrix(int row, int col);
 void freeMatrix(double **a);
 
-int main(int argc, char *argv[])
+int main(/*int argc, char *argv[]*/)
 {
-	double h;
-	if (argc == 2)
-	{
-		h = atof(argv[1]);
-	}
+	double h=1.0;
+	// if (argc == 2)
+	// {
+	// 	h = atof(argv[1]);
+	// }
 	int i = 0, j = 0;
 	int length = 1;
 	int n = length / h;
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
 	for (int j = 0; j < num_of_nodes; j++)
 	{
-		printf("%lf ",Q[j]);
+		printf("%f \n",Q[j]);
 	}
 	printf("\n");
 
@@ -181,6 +181,12 @@ double *Q_matrix(double h, double nodes[][3], int elements[][5], int k)
 	eta[1] = -0.5773;
 	eta[2] = 0.5773;
 	eta[3] = 0.5773;
+
+	for (int i = 0; i < 4; i++)
+	{
+		Q[i]=0;
+	}
+	
 
 	for (int jj = 0; jj < 4; jj++)
 	{
