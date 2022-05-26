@@ -55,11 +55,7 @@ int main(int argc, char *argv[])
 	//free matrices
 	freeMatrix(G_A);
 	freeMatrix(G_B);
-<<<<<<< HEAD
-	freeMatrix(G_Q);
-=======
 	free(G_Q);
->>>>>>> refs/remotes/origin/mawenbo
 	return 0;
 }
 
@@ -201,6 +197,25 @@ void assembel_G_Q(double *G_Q, double h,double nodes[][3], int num_of_elements, 
 		}	
 	}
 	free(Q);
+}
+
+
+// assemble G_q there is some errors. remember to inititalize G_q. Lihd don't konw how to inititalize
+void assemble_G_q(float** G_q, float q[], int num_of_nodes, int n, int elments[][5])
+{
+	//float G_q[num_of_nodes]={0};
+	int h = 1/n;
+	int h1 = 1; //heat flux
+	int i = 0;
+	for (i = n*(n+1); i < num_of_nodes; i++)
+	{
+		G_q[i] +=h*h1/2;
+	}
+	int j=0;
+	for (j = n; j < num_of_nodes; j +=n+1)
+	{
+		G_q[j] +=h*h1/2;
+	}
 }
 
 double **mallocMatrix(int row, int col)
