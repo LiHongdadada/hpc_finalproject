@@ -5,14 +5,15 @@
 #define PI 3.14159265
 
 void q_matrix(double q[4], double h);
-double* Q_matrix(double h, double nodes[][3], int elements[][5], int i);
+double *Q_matrix(double h, double nodes[][3], int elements[][5], int i);
 void B_matrix(double B[][4], double h);
 void elements_matrix(int elements[][5], int num_of_elements, int n);
 void nodes_matrix(double nodes[][3], int num_of_nodes, int n, double h);
 void A_matrix(double A[][4], double B[][4], double A1[][4]);
 void assemble_G_A(double **G_A, double A[][4], int num_of_elements, int num_of_nodes, int elments[][5]);
 void assemble_G_B(double **G_B, double B[][4], int num_of_elements, int num_of_nodes, int elments[][5]);
-void assembel_G_Q(double *G_Q, double h,double nodes[][3], int num_of_elements, int num_of_nodes, int elments[][5]);
+void assembel_G_Q(double *G_Q, double h, double nodes[][3], int num_of_elements, int num_of_nodes, int elments[][5]);
+void assemble_G_q(double *G_q, int num_of_nodes, int n,double h);
 double **mallocMatrix(int row, int col);
 void freeMatrix(double **a);
 
@@ -36,23 +37,62 @@ int main(int argc, char *argv[])
 	int elements[num_of_elements][5];
 	double A1[4][4] = {{0.6667, -0.1667, -0.3333, -0.1667}, {-0.1667, 0.6667, -0.1667, -0.3333}, {-0.3333, -0.1667, 0.6667, -0.1667}, {-0.1667, -0.3333, -0.1667, 0.6667}};
 	double A[4][4] = {0};
+	double *Q;
 	double **G_A = mallocMatrix(num_of_nodes, num_of_nodes);
 	double **G_B = mallocMatrix(num_of_nodes, num_of_nodes);
-	//double **G_Q = mallocMatrix(num_of_nodes, num_of_nodes);
-	//double **G_q = mallocMatrix(num_of_nodes, num_of_nodes);
-	double *G_Q=(double *)malloc(sizeof(double)*num_of_nodes);
+	// double **G_Q = mallocMatrix(num_of_nodes, num_of_nodes);
+	// double **G_q = mallocMatrix(num_of_nodes, num_of_nodes);
+	double *G_Q = (double *)malloc(sizeof(double) * num_of_nodes);
+	double *G_q = (double *)malloc(sizeof(double) * num_of_nodes);
 
 	// inititalize matrices.
 	q_matrix(q, h);
 	nodes_matrix(nodes, num_of_nodes, n, h);
 	elements_matrix(elements, num_of_elements, n);
-	Q_matrix( h, nodes, elements, i);
+	Q=Q_matrix(h, nodes, elements, 0);
 	B_matrix(B, h);
 	A_matrix(A, B, A1);
 
+	assemble_G_A(G_A,A,num_of_elements,num_of_nodes,elements);
+	printf("global A matrix:\n");
+	for (int i = 0; i < num_of_nodes; i++)
+	{
+		for (int j = 0; j < num_of_nodes; j++)
+		{
+			printf("%lf ",G_A[i][j]);
+		}
+		printf("\n");
+	}
+	
+	assembel_G_Q(G_Q,h,nodes,num_of_elements,num_of_nodes,elements);
+	printf("global Q matrix:\n");
 
+	for (int j = 0; j < num_of_nodes; j++)
+	{
+		printf("%lf ",G_Q[j]);
+	}
+	printf("\n");
 
-	//free matrices
+	assemble_G_q(G_q,num_of_nodes,n,h);
+	printf("global q matrix:\n");
+	for (int j = 0; j < num_of_nodes; j++)
+	{
+		printf("%lf ",G_q[j]);
+	}
+	printf("\n");
+
+	assemble_G_B(G_B,B,num_of_elements,num_of_nodes,elements);
+	printf("global B matrix:\n");
+	for (int i = 0; i < num_of_nodes; i++)
+	{
+		for (int j = 0; j < num_of_nodes; j++)
+		{
+			printf("%lf ",G_B[i][j]);
+		}
+		printf("\n");
+	};
+
+	// free matrices
 	freeMatrix(G_A);
 	freeMatrix(G_B);
 	free(G_Q);
@@ -91,10 +131,10 @@ void q_matrix(double q[4], double h)
 	q[3] = 0;
 }
 
-double* Q_matrix(double h, double nodes[][3], int elements[][5], int n)
+double *Q_matrix(double h, double nodes[][3], int elements[][5], int k)
 {
 	double xi[4], eta[4];
-	double* Q=(double*)malloc(sizeof(double)*4);
+	double *Q = (double *)malloc(sizeof(double) * 4);
 	xi[0] = -0.5773;
 	xi[1] = 0.5773;
 	xi[2] = 0.5773;
@@ -107,10 +147,10 @@ double* Q_matrix(double h, double nodes[][3], int elements[][5], int n)
 
 	for (int jj = 0; jj < 4; jj++)
 	{
-		Q[0] += (h * h / 32.0) * (sin(PI * (h / 2.0 * xi[jj] + nodes[elements[n][1]][1] + h / 2.0)) + sin(PI * (h / 2.0 * eta[jj] + nodes[elements[n][1]][2] + h / 2.0))) * (1 - xi[jj]) * (1 - eta[jj]);
-		Q[1] += (h * h / 32.0) * (sin(PI * (h / 2.0 * xi[jj] + nodes[elements[n][1]][1] + h / 2.0)) + sin(PI * (h / 2.0 * eta[jj] + nodes[elements[n][1]][2] + h / 2.0))) * (1 + xi[jj]) * (1 - eta[jj]);
-		Q[2] += (h * h / 32.0) * (sin(PI * (h / 2.0 * xi[jj] + nodes[elements[n][1]][1] + h / 2.0)) + sin(PI * (h / 2.0 * eta[jj] + nodes[elements[n][1]][2] + h / 2.0))) * (1 + xi[jj]) * (1 + eta[jj]);
-		Q[3] += (h * h / 32.0) * (sin(PI * (h / 2.0 * xi[jj] + nodes[elements[n][1]][1] + h / 2.0)) + sin(PI * (h / 2.0 * eta[jj] + nodes[elements[n][1]][2] + h / 2.0))) * (1 - xi[jj]) * (1 + eta[jj]);
+		Q[0] += (h * h / 32.0) * (sin(PI * (h / 2.0 * xi[jj] + nodes[elements[k][1]][1] + h / 2.0)) + sin(PI * (h / 2.0 * eta[jj] + nodes[elements[k][1]][2] + h / 2.0))) * (1 - xi[jj]) * (1 - eta[jj]);
+		Q[1] += (h * h / 32.0) * (sin(PI * (h / 2.0 * xi[jj] + nodes[elements[k][1]][1] + h / 2.0)) + sin(PI * (h / 2.0 * eta[jj] + nodes[elements[k][1]][2] + h / 2.0))) * (1 + xi[jj]) * (1 - eta[jj]);
+		Q[2] += (h * h / 32.0) * (sin(PI * (h / 2.0 * xi[jj] + nodes[elements[k][1]][1] + h / 2.0)) + sin(PI * (h / 2.0 * eta[jj] + nodes[elements[k][1]][2] + h / 2.0))) * (1 + xi[jj]) * (1 + eta[jj]);
+		Q[3] += (h * h / 32.0) * (sin(PI * (h / 2.0 * xi[jj] + nodes[elements[k][1]][1] + h / 2.0)) + sin(PI * (h / 2.0 * eta[jj] + nodes[elements[k][1]][2] + h / 2.0))) * (1 - xi[jj]) * (1 + eta[jj]);
 	}
 	return Q;
 }
@@ -152,12 +192,11 @@ void assemble_G_A(double **G_A, double A[][4], int num_of_elements, int num_of_n
 		{
 			for (int j = 0; j < 4; j++)
 			{
-				G_A[elments[n][i+1]][elments[n][j+1]] += A[i][j];
+				G_A[elments[n][i + 1]][elments[n][j + 1]] += A[i][j];
 			}
 		}
 	}
 }
-
 
 void assemble_G_B(double **G_B, double B[][4], int num_of_elements, int num_of_nodes, int elments[][5])
 {
@@ -174,49 +213,53 @@ void assemble_G_B(double **G_B, double B[][4], int num_of_elements, int num_of_n
 		{
 			for (int j = 0; j < 4; j++)
 			{
-				G_B[elments[n][i+1]][elments[n][j+1]] += B[i][j];
+				G_B[elments[n][i + 1]][elments[n][j + 1]] += B[i][j];
 			}
 		}
 	}
 }
 
-
-void assembel_G_Q(double *G_Q, double h,double nodes[][3], int num_of_elements, int num_of_nodes, int elments[][5])
+void assembel_G_Q(double *G_Q, double h, double nodes[][3], int num_of_elements, int num_of_nodes, int elments[][5])
 {
-	double* Q;
+	double *Q;
 	for (int i = 0; i < num_of_nodes; i++)
 	{
-		G_Q[i]=0;
+		G_Q[i] = 0;
 	}
 	for (int n = 0; n < num_of_elements; n++)
 	{
-		Q=Q_matrix(h,nodes,elments,n);
+		Q = Q_matrix(h, nodes, elments, n);
 		for (int i = 0; i < num_of_nodes; i++)
 		{
-			G_Q[elments[n][i+1]]+=Q[i];
-		}	
+			G_Q[elments[n][i + 1]] += Q[i];
+		}
 	}
 	free(Q);
 }
 
-
 // assemble G_q there is some errors. remember to inititalize G_q. Lihd don't konw how to inititalize
-void assemble_G_q(float** G_q, float q[], int num_of_nodes, int n, int elments[][5])
+void assemble_G_q(double *G_q, int num_of_nodes, int n,double h)
 {
-	//float G_q[num_of_nodes]={0};
-	int h = 1/n;
-	int h1 = 1; //heat flux
+	// double G_q[num_of_nodes]={0};
+	int h1 = 1; // heat flux
 	int i = 0;
-	for (i = n*(n+1); i < num_of_nodes; i++)
+	for (int i = 0; i < num_of_nodes; i++)
 	{
-		G_q[i] +=h*h1/2;
+		G_q[i]=0;
 	}
-	int j=0;
-	for (j = n; j < num_of_nodes; j +=n+1)
+	
+	for (i = n * (n + 1); i < num_of_nodes; i++)
 	{
-		G_q[j] +=h*h1/2;
+		G_q[i] += h * h1 / 2;
+	}
+	int j = 0;
+	for (j = n; j < num_of_nodes; j += n + 1)
+	{
+		G_q[j] += h * h1 / 2;
 	}
 }
+
+
 
 double **mallocMatrix(int row, int col)
 {
