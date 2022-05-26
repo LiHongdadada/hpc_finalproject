@@ -14,6 +14,9 @@ void assemble_G_A(double **G_A, double A[][4], int num_of_elements, int num_of_n
 void assemble_G_B(double **G_B, double B[][4], int num_of_elements, int num_of_nodes, int elments[][5]);
 void assembel_G_Q(double *G_Q, double h, double nodes[][3], int num_of_elements, int num_of_nodes, int elments[][5]);
 void assemble_G_q(double *G_q, int num_of_nodes, int n,double h);
+void huayifa_G_Qaq(double *G_Q,double *G_q, int n, int num_of_nodes);
+void huayifa_G_A(double **G_A, int num_of_elements, int num_of_nodes, int n, double h);
+void huayifa_G_B(double **G_B, int num_of_elements, int num_of_nodes, int n, double h);
 double **mallocMatrix(int row, int col);
 void freeMatrix(double **a);
 
@@ -52,7 +55,7 @@ int main(/*int argc, char *argv[]*/)
 	Q=Q_matrix(h, nodes, elements, 0);
 	B_matrix(B, h);
 	A_matrix(A, B, A1);
-
+	
 	/************single*****************/
 	printf("single A matrix:\n");
 	for (int i = 0; i < num_of_nodes; i++)
@@ -128,7 +131,36 @@ int main(/*int argc, char *argv[]*/)
 		}
 		printf("\n");
 	}
+	huayifa_G_Qaq(G_Q,G_q, n, num_of_nodes);
+	printf("huayifa Q matrix:\n");
 
+	for (int j = 0; j < num_of_nodes; j++)
+	{
+		printf("%lf ",G_Q[j]);
+	}
+	printf("\n");
+	huayifa_G_A(G_A, num_of_elements, num_of_nodes, n, h);	
+	printf("huayifa A matrix:\n");
+
+	for (int i = 0; i < num_of_nodes; i++)
+	{
+		for (int j = 0; j < num_of_nodes; j++)
+		{
+			printf("%lf ",G_A[i][j]);
+		}
+		printf("\n");
+	}
+	huayifa_G_B(G_B, num_of_elements, num_of_nodes, n, h);	
+	printf("huayifa B matrix:\n");
+
+	for (int i = 0; i < num_of_nodes; i++)
+	{
+		for (int j = 0; j < num_of_nodes; j++)
+		{
+			printf("%lf ",G_B[i][j]);
+		}
+		printf("\n");
+	}
 	// free matrices
 	freeMatrix(G_A);
 	freeMatrix(G_B);
@@ -325,7 +357,149 @@ void assemble_G_q(double *G_q, int num_of_nodes, int n,double h)
 	}
 }
 
+void huayifa_G_Qaq(double *G_Q,double *G_q, int n, int num_of_nodes)
+{
+	int i=0;
+	int j=0;	
+	for (i=0;i<num_of_nodes;i++)
+	{
+		G_Q[i]=G_Q[i]-G_q[i];
+	}
+	for (i=0;i<n;i++)
+	{
+		G_Q[i]=0;
+	}
+	for (j=0;j<n*(n+1)+1;j += n+1)
+	{
+		G_Q[j]=0;
+	}
+}
 
+void huayifa_G_A(double **G_A, int num_of_elements, int num_of_nodes, int n, double h)
+{
+	int i=0;
+	int j=0;
+	for (i=0;i<n;i++)
+	{	
+		for (j=0;j<num_of_nodes;j++)
+		{
+			if (j==i)
+			{			
+				G_A[i][j]=1;
+			}
+			else 
+			{
+				G_A[i][j]=0;
+			}
+		}	
+	}
+	for (i=0;i<n;i++)
+	{	
+		for (j=0;j<num_of_nodes;j++)
+		{
+			if (j==i)
+			{			
+				G_A[j][i]=1;
+			}
+			else 
+			{
+				G_A[j][i]=0;
+			}
+		}
+	}
+	for (i=0;i<n*(n+1)+1;i += n+1)
+	{	
+		for (j=0;j<num_of_nodes;j++)
+		{
+			if (j==i)
+			{			
+				G_A[i][j]=1;
+			}
+			else 
+			{
+				G_A[i][j]=0;
+			}
+		}
+	}
+	for (i=0;i<n*(n+1)+1;i += n+1)
+	{	
+		for (j=0;j<num_of_nodes;j++)
+		{
+			if (j==i)
+			{			
+				G_A[j][i]=1;
+			}
+			else 
+			{
+				G_A[j][i]=0;
+			}
+		}
+	}
+	
+}
+
+void huayifa_G_B(double **G_B, int num_of_elements, int num_of_nodes, int n, double h)
+{
+	int i=0;
+	int j=0;
+	for (i=0;i<n;i++)
+	{	
+		for (j=0;j<num_of_nodes;j++)
+		{
+			if (j==i)
+			{			
+				G_B[i][j]=1;
+			}
+			else 
+			{
+				G_B[i][j]=0;
+			}
+		}	
+	}
+	for (i=0;i<n;i++)
+	{	
+		for (j=0;j<num_of_nodes;j++)
+		{
+			if (j==i)
+			{			
+				G_B[j][i]=1;
+			}
+			else 
+			{
+				G_B[j][i]=0;
+			}
+		}
+	}
+	for (i=0;i<n*(n+1)+1;i += n+1)
+	{	
+		for (j=0;j<num_of_nodes;j++)
+		{
+			if (j==i)
+			{			
+				G_B[i][j]=1;
+			}
+			else 
+			{
+				G_B[i][j]=0;
+			}
+		}
+	}
+	for (i=0;i<n*(n+1)+1;i += n+1)
+	{	
+		for (j=0;j<num_of_nodes;j++)
+		{
+			if (j==i)
+			{			
+				G_B[j][i]=1;
+			}
+			else 
+			{
+				G_B[j][i]=0;
+			}
+		}
+	}
+	
+}
 
 double **mallocMatrix(int row, int col)
 {
