@@ -19,7 +19,7 @@ void freeMatrix(double **a);
 
 int main(/*int argc, char *argv[]*/)
 {
-	double h=1.0;
+	double h=0.5;
 	// if (argc == 2)
 	// {
 	// 	h = atof(argv[1]);
