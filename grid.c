@@ -56,7 +56,6 @@ int main(int argc, char *argv[])
 	freeMatrix(G_A);
 	freeMatrix(G_B);
 	freeMatrix(G_Q);
-	freeMatrix(G_q);
 	return 0;
 }
 
