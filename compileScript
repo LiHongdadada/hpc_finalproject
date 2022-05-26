@@ -2,4 +2,4 @@
 
 module load gcc
 
-gcc grid.c -o grid
+gcc grid.c -lm -o grid

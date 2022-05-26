@@ -55,7 +55,11 @@ int main(int argc, char *argv[])
 	//free matrices
 	freeMatrix(G_A);
 	freeMatrix(G_B);
+<<<<<<< HEAD
 	freeMatrix(G_Q);
+=======
+	free(G_Q);
+>>>>>>> refs/remotes/origin/mawenbo
 	return 0;
 }
 
