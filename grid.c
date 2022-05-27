@@ -59,14 +59,14 @@ int main(int argc, char *argv[])
 	G_A_dims[1] = num_of_nodes;
 	file_id = H5Fcreate(FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 	group_id = H5Gcreate(file_id, "/results", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-	dataspace_G_B_id = H5Screate_simple(2, G_B_dims, NULL);
-	dataset_G_B_id = H5Dcreate2(file_id, "/results/G_B", H5T_NATIVE_DOUBLE, dataspace_G_B_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)
-	dataspace_G_A_id = H5Screate_simple(2, G_A_dims, NULL);
-	dataset_G_A_id = H5Dcreate2(file_id, "/results/G_A", H5T_NATIVE_DOUBLE, dataspace_G_A_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)
-	dataspace_G_Q_id = H5Screate_simple(1, G_Q_dims, NULL);
-	dataset_G_Q_id = H5Dcreate2(file_id, "/results/G_Q", H5T_NATIVE_DOUBLE, dataspace_G_Q_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)
-	dataspace_G_q_id = H5Screate_simple(1, G_q_dims, NULL);
-	dataset_G_q_id = H5Dcreate2(file_id, "/results/G_q", H5T_NATIVE_DOUBLE, dataspace_G_q_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)
+	dataspace_G_B_id = H5Screate_simple(2,G_B_dims, NULL);
+	dataset_G_B_id = H5Dcreate2(file_id, "/results/G_B", H5T_NATIVE_DOUBLE, dataspace_G_B_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	dataspace_G_A_id = H5Screate_simple(2,G_A_dims, NULL);
+	dataset_G_A_id = H5Dcreate2(file_id, "/results/G_A", H5T_NATIVE_DOUBLE, dataspace_G_A_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	dataspace_G_Q_id = H5Screate_simple(1,&G_Q_dims, NULL);
+	dataset_G_Q_id = H5Dcreate2(file_id, "/results/G_Q", H5T_NATIVE_DOUBLE, dataspace_G_Q_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	dataspace_G_q_id = H5Screate_simple(1,&G_q_dims, NULL);
+	dataset_G_q_id = H5Dcreate2(file_id, "/results/G_q", H5T_NATIVE_DOUBLE, dataspace_G_q_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 	
 	
 	// inititalize matrices.
@@ -183,13 +183,13 @@ int main(int argc, char *argv[])
 	status = H5Dwrite(dataset_G_q_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_q);
 
 	status = H5Dclose(dataset_G_B_id);
-	status = H5Sclose(dataset_G_B_id);
+	status = H5Sclose(dataspace_G_B_id);
 	status = H5Dclose(dataset_G_A_id);
-	status = H5Sclose(dataset_G_A_id);
+	status = H5Sclose(dataspace_G_A_id);
 	status = H5Dclose(dataset_G_Q_id);
-	status = H5Sclose(dataset_G_Q_id);
+	status = H5Sclose(dataspace_G_Q_id);
 	status = H5Dclose(dataset_G_q_id);
-	status = H5Sclose(dataset_G_q_id);
+	status = H5Sclose(dataspace_G_q_id);
 
 	status = H5Gclose(group_id);
 	status = H5Fclose(file_id);
