@@ -4,4 +4,4 @@
 #BSUB -e plog
 #BSUB -o plog
 
-./grid 0.1
+./grid 0.5 
