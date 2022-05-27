@@ -2,4 +2,4 @@
 
 module load gcc
 
-gcc grid.c -lm -o grid
+gcc grid.c -lm -I/work/mae-mawb/lib/HDF5-1.12.1/include/ -lhdf5 -o grid
