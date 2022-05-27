@@ -43,13 +43,13 @@ int main(int argc, char *argv[])
     double A1[4][4] = {{0.6667, -0.1667, -0.3333, -0.1667}, {-0.1667, 0.6667, -0.1667, -0.3333}, {-0.3333, -0.1667, 0.6667, -0.1667}, {-0.1667, -0.3333, -0.1667, 0.6667}};
     double A[4][4] = {0};
     double *Q;
-    double **G_A = mallocMatrix(num_of_nodes, num_of_nodes);
+//    double **G_A = mallocMatrix(num_of_nodes, num_of_nodes);
     double **G_B = mallocMatrix(num_of_nodes, num_of_nodes);
     // double **G_Q = mallocMatrix(num_of_nodes, num_of_nodes);
     // double **G_q = mallocMatrix(num_of_nodes, num_of_nodes);
     double *G_Q = (double *)malloc(sizeof(double) * num_of_nodes);
     double *G_q = (double *)malloc(sizeof(double) * num_of_nodes);
-
+	double *G_A =(double *)malloc(sizeof(double) * num_of_nodes* num_of_nodes);
     hid_t file_id, group_id, dataspace_G_B_id, dataspace_G_A_id, dataspace_G_Q_id, dataspace_G_q_id, dataspace_T_id, dataspace_Tdt_id, dataset_G_B_id, dataset_G_A_id, dataset_G_Q_id, dataset_G_q_id, dataset_T_id, dataset_Tdt_id;
     herr_t status;
     hsize_t G_B_dims[2], G_A_dims[2], G_Q_dims = num_of_nodes, G_q_dims = num_of_nodes, T_dims = num_of_nodes, Tdt_dims = num_of_nodes; // see whether dims can be only one number,i.e. for q and Q.
@@ -63,24 +63,24 @@ int main(int argc, char *argv[])
         file_id = H5Fopen(FILE, H5F_ACC_RDWR, H5P_DEFAULT);
         dataset_G_B_id=H5Dopen(file_id,"/results/G_B",H5P_DEFAULT);
         dataset_G_A_id=H5Dopen(file_id,"/results/G_A",H5P_DEFAULT);
-        dataset_G_Q_id=H5Dopen(file_id,"results//G_Q",H5P_DEFAULT);
+        dataset_G_Q_id=H5Dopen(file_id,"/results/G_Q",H5P_DEFAULT);
         dataset_G_q_id=H5Dopen(file_id,"/results/G_q",H5P_DEFAULT);
 
-        status = H5Dread(dataset_G_B_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_B);
+    //    status = H5Dread(dataset_G_B_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_B);
         status = H5Dread(dataset_G_A_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_A);
-        status = H5Dread(dataset_G_Q_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_Q);
-        status = H5Dread(dataset_G_q_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_q);
-/*
+      //  status = H5Dread(dataset_G_Q_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_Q);
+       // status = H5Dread(dataset_G_q_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_q);
+  /*
         status = H5Dclose(dataset_G_B_id);
         status = H5Dclose(dataset_G_A_id);
         status = H5Dclose(dataset_G_Q_id);
         status = H5Dclose(dataset_G_q_id);
         status = H5Fclose(file_id);
   */ // }
-  /*  else
-    {
+  //  else
+   // {
 
-        file_id = H5Fcreate(FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+/*        file_id = H5Fcreate(FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
         group_id = H5Gcreate(file_id, "/results", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         dataspace_G_B_id = H5Screate_simple(2, G_B_dims, NULL);
         dataset_G_B_id = H5Dcreate2(file_id, "/results/G_B", H5T_NATIVE_DOUBLE, dataspace_G_B_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -125,8 +125,8 @@ int main(int argc, char *argv[])
         status = H5Gclose(group_id);
         status = H5Fclose(file_id);
         
-    }
-*/
+ */ //  }
+
 
   /*  printf("single A matrix:\n");
     for (int i = 0; i < 4; i++)
@@ -159,6 +159,8 @@ int main(int argc, char *argv[])
     /***********global***************/
 
     printf("global A matrix:\n");
+printf("%lf ", G_A[3]);
+/*
     for (int i = 0; i < num_of_nodes; i++)
     {
         for (int j = 0; j < num_of_nodes; j++)
@@ -166,7 +168,7 @@ int main(int argc, char *argv[])
             printf("%lf ", G_A[i][j]);
         }
         printf("\n");
-    }
+    }*/
 /*
     printf("global Q matrix:\n");
 
@@ -227,8 +229,8 @@ int main(int argc, char *argv[])
         status = H5Dclose(dataset_G_Q_id);
         status = H5Dclose(dataset_G_q_id);
         status = H5Fclose(file_id);
-    // free matrices
-    freeMatrix(G_A);
+  // free matrices
+   // freeMatrix(G_A);
     freeMatrix(G_B);
     free(G_Q);
     free(G_q);
