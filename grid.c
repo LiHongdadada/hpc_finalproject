@@ -24,13 +24,12 @@ void freeMatrix(double **a);
 
 int main(int argc, char *argv[])
 {
-    double h;
-    double dt;
-    assert(argc == 4);
-    h = atof(argv[1]);
-    dt = atof(argv[2]);
+    double h=0.5;
+    double dt=0.5;
+    //assert(argc == 4);
+   // h = atof(argv[1]);
+   // dt = atof(argv[2]);
 
-    int i = 0, j = 0;
     int length = 1;
     int n = length / h;
     int num_of_elements = n * n;
@@ -59,26 +58,26 @@ int main(int argc, char *argv[])
     G_A_dims[0] = num_of_nodes;
     G_A_dims[1] = num_of_nodes;
 
-    if ((*argv[3]) == 'r')
-    {
+   // if (*argv[3] == 'r')
+    //{
         file_id = H5Fopen(FILE, H5F_ACC_RDWR, H5P_DEFAULT);
         dataset_G_B_id=H5Dopen(file_id,"/results/G_B",H5P_DEFAULT);
         dataset_G_A_id=H5Dopen(file_id,"/results/G_A",H5P_DEFAULT);
-        dataset_G_Q_id=H5Dopen(file_id,"/results/G_Q",H5P_DEFAULT);
+        dataset_G_Q_id=H5Dopen(file_id,"results//G_Q",H5P_DEFAULT);
         dataset_G_q_id=H5Dopen(file_id,"/results/G_q",H5P_DEFAULT);
 
         status = H5Dread(dataset_G_B_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_B);
         status = H5Dread(dataset_G_A_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_A);
         status = H5Dread(dataset_G_Q_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_Q);
         status = H5Dread(dataset_G_q_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_q);
-
+/*
         status = H5Dclose(dataset_G_B_id);
         status = H5Dclose(dataset_G_A_id);
         status = H5Dclose(dataset_G_Q_id);
         status = H5Dclose(dataset_G_q_id);
         status = H5Fclose(file_id);
-    }
-    else
+  */ // }
+  /*  else
     {
 
         file_id = H5Fcreate(FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -108,7 +107,7 @@ int main(int argc, char *argv[])
         huayifa_G_B(G_B, num_of_elements, num_of_nodes, n, h);
 
         /************single*****************/
-
+/*
         status = H5Dwrite(dataset_G_B_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_B);
         status = H5Dwrite(dataset_G_A_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_A);
         status = H5Dwrite(dataset_G_Q_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, G_Q);
@@ -127,9 +126,9 @@ int main(int argc, char *argv[])
         status = H5Fclose(file_id);
         
     }
+*/
 
-
-    printf("single A matrix:\n");
+  /*  printf("single A matrix:\n");
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 4; j++)
@@ -156,7 +155,7 @@ int main(int argc, char *argv[])
         }
         printf("\n");
     }
-
+*/
     /***********global***************/
 
     printf("global A matrix:\n");
@@ -168,7 +167,7 @@ int main(int argc, char *argv[])
         }
         printf("\n");
     }
-
+/*
     printf("global Q matrix:\n");
 
     for (int j = 0; j < num_of_nodes; j++)
@@ -222,8 +221,12 @@ int main(int argc, char *argv[])
             printf("%lf ", G_B[i][j]);
         }
         printf("\n");
-    }
-
+    }*/
+    status = H5Dclose(dataset_G_B_id);
+        status = H5Dclose(dataset_G_A_id);
+        status = H5Dclose(dataset_G_Q_id);
+        status = H5Dclose(dataset_G_q_id);
+        status = H5Fclose(file_id);
     // free matrices
     freeMatrix(G_A);
     freeMatrix(G_B);
