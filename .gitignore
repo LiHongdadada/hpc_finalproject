@@ -3,3 +3,4 @@ grid
 plog
 *.exe
 .vscode
+core.*
