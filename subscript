@@ -5,10 +5,7 @@
 #BSUB -e %J-plog.err
 #BSUB -o %J-plog.out
 
-<<<<<<< HEAD
-./grid 
-=======
-<<<<<<< HEAD
+
 module purge
 module load intel/2018.4
 module load mpi/intel/2018.4
@@ -22,7 +19,4 @@ mpirun -np 1 ./implicit.out -ksp_type gmres \
   -sub_pc_type icc \
   -ksp_converged_reason \
   -log_view > $LSB_JOBID.log 2>&1
-=======
-./grid 0.5 
->>>>>>> e22140bd86bd7c9363279563674c7217c4bca100
->>>>>>> upstream/lihongda
+
