@@ -23,6 +23,7 @@ int main(int argc, char **args)
     	PetscOptionsGetReal(NULL, NULL, "-dt", &dt, NULL);
     	PetscInt n = 1 / h;
     	PetscInt num_of_nodes = (n + 1) * (n + 1), num_of_elements = n * n;
+	PetscInt row;
     	PetscScalar temp_val;
     	PetscReal nodes[num_of_nodes][3], Q[4];
     	PetscInt elements[num_of_elements][5];
@@ -151,11 +152,11 @@ int main(int argc, char **args)
             		Q[2] += (h * h / 32.0) * (sin(PI * (h / 2.0 * xi[jj] + nodes[elements[k][1]][1] + h / 2.0)) + sin(PI * (h / 2.0 * eta[jj] + nodes[elements[k][1]][2] + h / 2.0))) * (1 + xi[jj]) * (1 + eta[jj]);
             		Q[3] += (h * h / 32.0) * (sin(PI * (h / 2.0 * xi[jj] + nodes[elements[k][1]][1] + h / 2.0)) + sin(PI * (h / 2.0 * eta[jj] + nodes[elements[k][1]][2] + h / 2.0))) * (1 - xi[jj]) * (1 + eta[jj]);
         	}
-        	for (int i = 0; i < num_of_nodes; i++)
+        	for (int i = 0; i < 4; i++)
         	{
-	
+			row=elements[k][i+1]
             		val = Q[i];
-            		VecSetValues(G_Q, 1, &i, &val, ADD_VALUES);
+            		VecSetValues(G_Q, 1, &row, &val, ADD_VALUES);
         	}
     	}
     	VecAssemblyBegin(G_Q);
