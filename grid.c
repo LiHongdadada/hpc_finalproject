@@ -10,13 +10,15 @@ int main(int argc, char **args)
 {
     	PetscInitialize(&argc, &args, (char *)0, help);
     	Mat G_B, G_A, B, A;
-    	Vec G_Q, G_q;
+    	Vec G_Q, G_q, X, b, T, temp_vec;
+    	KSP ksp;
+    	PC  pc;
     	MPI_Comm comm;
-    	PetscReal h, dt, val, temp_B[4][4] = {{0.1111, 0.0556, 0.0278, 0.0556}, {0.0556, 0.1111, 0.0556, 0.0278}, {0.0278, 0.0556, 0.1111, 0.0556}, {0.0556, 0.0278, 0.0556, 0.1111}};
+    	PetscReal h, dt, t=0, val, temp_B[4][4] = {{0.1111, 0.0556, 0.0278, 0.0556}, {0.0556, 0.1111, 0.0556, 0.0278}, {0.0278, 0.0556, 0.1111, 0.0556}, {0.0556, 0.0278, 0.0556, 0.1111}};
     	PetscReal temp_A1[4][4] = {{0.6667, -0.1667, -0.3333, -0.1667}, {-0.1667, 0.6667, -0.1667, -0.3333}, {-0.3333, -0.1667, 0.6667, -0.1667}, {-0.1667, -0.3333, -0.1667, 0.6667}};
     	comm = MPI_COMM_WORLD;
     	PetscReal xi[4] = {-0.5773, 0.5773, 0.5773, -0.5773}, eta[4] = {-0.5773, -0.5773, 0.5773, 0.5773};
-	PetscReal q = 1 ;
+	PetscReal q = 1;
     	PetscOptionsGetReal(NULL, NULL, "-h", &h, NULL);
     	PetscOptionsGetReal(NULL, NULL, "-dt", &dt, NULL);
     	PetscInt n = 1 / h;
@@ -211,17 +213,58 @@ int main(int argc, char **args)
 		MatZeroRowsColumns(G_B, 1, &i, 1, 0, 0);
 		MatZeroRowsColumns(G_A, 1, &i, 1, 0, 0);
 	}
+	
+	MatAXPY(G_A, -1, G_B, SAME_NONZERO_PATTERN);
+	
+	VecCreate(PETSC_COMM_WORLD, &temp_vec);
+	VecSetSizes(temp_vec, PETSC_DECIDE, num_of_nodes);
+    	VecSetFromOptions(temp_vec);
+	VecSet(temp_vec,0);
+	VecAssemblyBegin(temp_vec);
+        VecAssemblyEnd(temp_vec);
+        
+        VecCreate(PETSC_COMM_WORLD, &x);
+	VecSetSizes(x, PETSC_DECIDE, num_of_nodes);
+    	VecSetFromOptions(x);
+	VecSet(x,0);
+	VecAssemblyBegin(x);
+        VecAssemblyEnd(x);
+        
+        VecCreate(PETSC_COMM_WORLD, &T);
+	VecSetSizes(T, PETSC_DECIDE, num_of_nodes);
+    	VecSetFromOptions(T);
+	VecSet(T,0);
+	VecAssemblyBegin(T);
+        VecAssemblyEnd(T);
+        
+        /******** ksp *********/
+        KSPCreate(PETSC_COMM_WORLD, &ksp);
+        KSPSetOperators(ksp, G_B, G_B);
+	KSPGetPC(ksp, &pc);
+	PCSetType(pc, PCJACOBI);
+	KSPSetTolerances(ksp, 1.e-10, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT);
+	KSPSetFromOptions(ksp);
 
-
-
-    MatDestroy(&B);
-    MatDestroy(&G_A);
-    MatDestroy(&G_B);
-    MatDestroy(&A);
-    VecDestroy(&G_Q);
-    VecDestroy(&G_q);
-    PetscFinalize();
-    return 0;
+	for (t = 0; t < 1+dt; t +=dt)
+	{
+		MatMult(G_A, T, temp_vec);
+		VecAXPY(G_Q, -1, temp_vec);
+		KSPSolve(ksp, G_Q, x); /* 求解出下一时间 */
+		VecCopy(T, x); /* 求解后的结果传到T作为初始值 */
+	}
+	
+	VecView(T,PETSC_VIEWER_STDOUT_WORLD);
+	
+    	MatDestroy(&B);
+    	MatDestroy(&G_A);
+    	MatDestroy(&G_B);
+    	MatDestroy(&A);
+    	VecDestroy(&G_Q);
+    	VecDestroy(&G_q);
+    	VecDestroy(&temp_vec);
+    	VecDestroy(&T);
+    	VecDestroy(&x);
+    	PetscFinalize();
+    	return 0;
 }
 
-}
