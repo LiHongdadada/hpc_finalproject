@@ -10,7 +10,7 @@ int main(int argc, char **args)
 {
     PetscInitialize(&argc, &args, (char *)0, help);
     Mat G_B, G_A, B, A;
-    Vec G_Q, G_q, X,  T, temp_vec;
+    Vec G_Q, G_q, x,  T, temp_vec;
     KSP ksp;
     PC pc;
     MPI_Comm comm;
@@ -215,7 +215,7 @@ int main(int argc, char **args)
     }
 
     MatAXPY(G_A, -1, G_B, SAME_NONZERO_PATTERN);
-    
+
     MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
 MatAssemblyBegin(G_B, MAT_FINAL_ASSEMBLY);
