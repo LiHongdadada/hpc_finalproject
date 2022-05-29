@@ -10,7 +10,7 @@ int main(int argc, char **args)
 {
     	PetscInitialize(&argc, &args, (char *)0, help);
     	Mat G_B, G_A, B, A;
-    	Vec G_Q, G_q, X, b, T, temp_vec;
+    	Vec G_Q, G_q, x, T, temp_vec;
     	KSP ksp;
     	PC  pc;
     	MPI_Comm comm;
@@ -58,7 +58,7 @@ int main(int argc, char **args)
     	}
     	MatAssemblyBegin(B, MAT_FINAL_ASSEMBLY);
     	MatAssemblyEnd(B, MAT_FINAL_ASSEMBLY);
-    	MatView(B, PETSC_VIEWER_STDOUT_WORLD);
+    //	MatView(B, PETSC_VIEWER_STDOUT_WORLD);
 
     	MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &A);
     	MatSetUp(A);
@@ -75,7 +75,7 @@ int main(int argc, char **args)
     	}
     	MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
     	MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
-    	MatView(A, PETSC_VIEWER_STDOUT_WORLD);
+  //  	MatView(A, PETSC_VIEWER_STDOUT_WORLD);
 
     	MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, num_of_nodes, num_of_nodes, num_of_nodes, PETSC_NULL, num_of_nodes, PETSC_NULL, &G_A);
     	MatSetUp(G_A);
@@ -95,7 +95,11 @@ int main(int argc, char **args)
     	}
     	MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);
     	MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
-    	MatView(G_A, PETSC_VIEWER_STDOUT_WORLD);
+    //	MatView(G_A, PETSC_VIEWER_STDOUT_WORLD);
+
+//	MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);
+    //	MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
+    //	MatView(G_A, PETSC_VIEWER_STDOUT_WORLD);
 
     	MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, num_of_nodes, num_of_nodes, num_of_nodes, PETSC_NULL, num_of_nodes, PETSC_NULL, &G_B);
     	MatSetUp(G_B);
@@ -113,13 +117,27 @@ int main(int argc, char **args)
             	}
         	}
     	}
+        MatAssemblyBegin(G_B, MAT_FINAL_ASSEMBLY);
+        MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);
+       // MatView(G_B, PETSC_VIEWER_STDOUT_WORLD);
+
+        /******** 置一划零法 **********/
+        for (int i = 0; i < n+1; i++)
+        {
+                MatZeroRowsColumns(G_B, 1, &i, 1, 0, 0);
+        }
+        for (int i = n+1; i < n * (n + 1) + 1; i += n + 1)
+        {
+                MatZeroRowsColumns(G_B, 1, &i, 1, 0, 0);
+        }
+
     	MatAssemblyBegin(G_B, MAT_FINAL_ASSEMBLY);
     	MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);
-    	MatView(G_B, PETSC_VIEWER_STDOUT_WORLD);
+        MatView(G_B, PETSC_VIEWER_STDOUT_WORLD);
 
    	VecCreate(PETSC_COMM_WORLD, &G_Q);
     	VecSetSizes(G_Q, PETSC_DECIDE, num_of_nodes);
-    	VecSetFromOptions(G_Q);
+        VecSetFromOptions(G_Q);
     	for (int k = 0; k < num_of_elements; k++)
     	{
         	for (int tt = 0; tt < 4; tt++)
@@ -140,20 +158,9 @@ int main(int argc, char **args)
             		VecSetValues(G_Q, 1, &i, &val, ADD_VALUES);
         	}
     	}
-	/********** G_Q的划零 ************/
-	for (int i = 0; i < n+1; i++)
-	{
-		val = 0;
-		VecSetValues(G_Q, 1, &i, &val, INSERT_VALUES);
-	}
-	for (int i = 0; i < n * (n + 1) + 1; i += n + 1)
-	{
-		val = 0;
-		VecSetValues(G_Q, 1, &i, &val, INSERT_VALUES);
-	}
     	VecAssemblyBegin(G_Q);
     	VecAssemblyEnd(G_Q);
-    	VecView(G_Q, PETSC_VIEWER_STDOUT_WORLD);
+        VecView(G_Q, PETSC_VIEWER_STDOUT_WORLD);
 
 	VecCreate(PETSC_COMM_WORLD, &G_q);
 	VecSetSizes(G_q, PETSC_DECIDE, num_of_nodes);
@@ -161,61 +168,52 @@ int main(int argc, char **args)
 	VecSet(G_q,0);
 	for (int i = n * (n + 1); i < num_of_nodes; i++)
 	{
-		if (i < num_of_nodes - 1)
-        	{
             		q = h;
 			VecSetValues(G_q, 1, &i, &q, INSERT_VALUES);
-        	}
-        	else if (i == num_of_nodes - 1)
-        	{
-            		q = h  / 2;
-			VecSetValues(G_q, 1, &i, &q, INSERT_VALUES);
-        	}
 	}
 	for (int j = n; j < num_of_nodes; j += n + 1)
     	{
-        	if (j <num_of_nodes - 1)
-        	{
-			q = h;
+       			q = h;
             		VecSetValues(G_q, 1, &j, &q, INSERT_VALUES);
-        	}
-        	else if (j == num_of_nodes - 1)
-        	{
-			q = h  / 2;
-            	VecSetValues(G_q, 1, &j, &q, INSERT_VALUES);
-        	}
+
     	}
-	/********** G_q的划零 ************/
-	for (int i = 0; i < n+1; i++)
-	{
-		val = 0;
-		VecSetValues(G_q, 1, &i, &val, INSERT_VALUES);
-	}
-	for (int i = 0; i < n * (n + 1) + 1; i += n + 1)
-	{
-		val = 0;
-		VecSetValues(G_q, 1, &i, &val, INSERT_VALUES);
-	}
+	int i = num_of_nodes-1;
+	VecSetValues(G_q, 1, &i, &h, INSERT_VALUES);
+	/********** G_Q的划零 ************/
 	VecAssemblyBegin(G_q);
         VecAssemblyEnd(G_q);
-        VecView(G_q, PETSC_VIEWER_STDOUT_WORLD);
+       // VecView(G_q, PETSC_VIEWER_STDOUT_WORLD);
 
 	VecAXPY(G_Q, -1, G_q);
+	for (int i = 0; i < n+1; i++)
+        {
+                val = 0;
+                VecSetValues(G_Q, 1, &i, &val, INSERT_VALUES);
+        }
+        for (int i = n+1; i < n * (n + 1) + 1; i += n + 1)
+        {
+                val = 0;
+                VecSetValues(G_Q, 1, &i, &val, INSERT_VALUES);
+        }
+	VecAssemblyBegin(G_Q);
+        VecAssemblyEnd(G_Q);
+       // VecView(G_Q, PETSC_VIEWER_STDOUT_WORLD);
+   
+	MatAXPY(G_A, -1, G_B, SAME_NONZERO_PATTERN);
 	
 	/******** 置一划零法 **********/
 	for (int i = 0; i < n+1; i++)
 	{
-		MatZeroRowsColumns(G_B, 1, &i, 1, 0, 0);
 		MatZeroRowsColumns(G_A, 1, &i, 1, 0, 0);
 	}
-	for (int i = 0; i < n * (n + 1) + 1; i += n + 1)
+	for (int i = n+1; i < n * (n + 1) + 1; i += n + 1)
 	{
-		MatZeroRowsColumns(G_B, 1, &i, 1, 0, 0);
 		MatZeroRowsColumns(G_A, 1, &i, 1, 0, 0);
 	}
-	
-	MatAXPY(G_A, -1, G_B, SAME_NONZERO_PATTERN);
-	
+	MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);
+        MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
+	MatView(G_A, PETSC_VIEWER_STDOUT_WORLD);
+
 	VecCreate(PETSC_COMM_WORLD, &temp_vec);
 	VecSetSizes(temp_vec, PETSC_DECIDE, num_of_nodes);
     	VecSetFromOptions(temp_vec);
@@ -249,11 +247,15 @@ int main(int argc, char **args)
 	{
 		MatMult(G_A, T, temp_vec);
 		VecAXPY(G_Q, -1, temp_vec);
+
+	//	VecView(temp_vec,PETSC_VIEWER_STDOUT_WORLD);
+	//	VecView(G_Q,PETSC_VIEWER_STDOUT_WORLD);
+
 		KSPSolve(ksp, G_Q, x); /* 求解出下一时间 */
 		VecCopy(T, x); /* 求解后的结果传到T作为初始值 */
 	}
 	
-	VecView(T,PETSC_VIEWER_STDOUT_WORLD);
+	VecView(T ,PETSC_VIEWER_STDOUT_WORLD);
 	
     	MatDestroy(&B);
     	MatDestroy(&G_A);
