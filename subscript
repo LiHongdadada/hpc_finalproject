@@ -5,6 +5,7 @@
 #BSUB -e plog
 #BSUB -o plog
 
+
 module purge
 module load intel/2018.4
 module load mpi/intel/2018.4
@@ -18,3 +19,4 @@ mpirun -np 1 ./grid -h 1 -dt 1 -ksp_type gmres \
   -sub_pc_type icc \
   -ksp_converged_reason \
   -log_view
+
