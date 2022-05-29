@@ -10,7 +10,7 @@ int main(int argc, char **args)
 {
     	PetscInitialize(&argc, &args, (char *)0, help);
     	Mat G_B, G_A, B, A;
-    	Vec G_Q, G_q, X, b, T, temp_vec;
+    	Vec G_Q, G_q, x,  T, temp_vec;
     	KSP ksp;
     	PC  pc;
     	MPI_Comm comm;
@@ -267,4 +267,3 @@ int main(int argc, char **args)
     	PetscFinalize();
     	return 0;
 }
-
