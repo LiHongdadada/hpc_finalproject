@@ -210,7 +210,7 @@ int main(int argc, char **args)
 	{
 		MatZeroRowsColumns(G_B, 1, &i, 1, 0, 0);
 		MatZeroRowsColumns(G_A, 1, &i, 1, 0, 0);
-	}:
+	}
 
 
 
