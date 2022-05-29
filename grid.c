@@ -215,10 +215,11 @@ int main(int argc, char **args)
     }
 
     MatAXPY(G_A, -1, G_B, SAME_NONZERO_PATTERN);
-    MatAssemblyBegin(G_A);
-    MatAssemblyEnd(G_A);
-MatAssemblyBegin(G_B);
-    MatAssemblyEnd(G_B);
+    
+    MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);
+    MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
+MatAssemblyBegin(G_B, MAT_FINAL_ASSEMBLY);
+    MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);
 MatView(G_A, PETSC_VIEWER_STDOUT_WORLD);
 MatView(G_B, PETSC_VIEWER_STDOUT_WORLD);
 
