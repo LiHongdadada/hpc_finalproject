@@ -1,22 +1,14 @@
 #!/bin/bash
 #BSUB -J final_project
 #BSUB -q ser
-#BSUB -n 1
 #BSUB -e plog
 #BSUB -o plog
-
-
-module purge
+#BSUB -n 1
 module load intel/2018.4
 module load mpi/intel/2018.4
 
-mpirun -np 1 ./grid -h 1 -dt 1 -ksp_type gmres \
-  -ksp_gmres_restart 30 -ksp_rtol 1.0e-10 \
-  -ksp_atol 1.0e-50 -ksp_max_it 1500 \
-  -ksp_gmres_modifiedgramschmidt \
-  -pc_type asm \
-  -sub_ksp_type richardson \
-  -sub_pc_type icc \
-  -ksp_converged_reason \
-  -log_view
+#mpirun -np 1 ./grid.out -h 0.5 -dt 0.1 ##-maxit 2
+#mpirun -np 1 ./g1 -h 0.01 -dt 0.00001
+#mpirun -np 1 ./g5 -h 0.02 -dt 0.00001 -maxit 200
+mpirun -np 1 ./g6 -h 0.01 -dt 0.0000001 -maxit 60000 -restart 1 
 
