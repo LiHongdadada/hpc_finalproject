@@ -204,7 +204,7 @@ int main(int argc, char **args)
         VecLoad(times, h5);
         PetscViewerDestroy(&h5);
         VecGetValues(times, 1, &index, &t);
-        }
+    }
     else
     {
 
