@@ -8,7 +8,7 @@ static char help[] = "Solves a 10000x10000 linear system.\n\n";
 #include <math.h>
 
 #define PI 3.14159265
-#define FILE "implicit.h5"
+#define FILE "explicit.h5"
 int main(int argc, char **args)
 {
     PetscInitialize(&argc, &args, (char *)0, help);
@@ -29,14 +29,14 @@ int main(int argc, char **args)
     PetscInt n = 1 / h;
     PetscInt num_of_nodes = (n + 1) * (n + 1), num_of_elements = n * n;
     PetscInt iter = 0;
-    PetscScalar temp_val;
+    PetscScalar temp_val, norm = 1.0, tempNorm = 0.0, tempV = 1.0;
     PetscInt index = 0;
     PetscReal t_v, Q[4];
     PetscReal nodes[num_of_nodes][3];
     PetscScalar data[1];
     PetscViewer h5; /*创建输出*/
-
     PetscInt elements[num_of_elements][5];
+
     for (int i = 0; i < num_of_nodes; i++)
     {
         int a = i / (n + 1);
@@ -53,7 +53,6 @@ int main(int argc, char **args)
         elements[i][3] = i + a + n + 2;
         elements[i][4] = i + a + n + 1;
     }
-
     MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &B);
     MatSetUp(B);
     MatSetFromOptions(B);
@@ -67,9 +66,7 @@ int main(int argc, char **args)
     }
     MatAssemblyBegin(B, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(B, MAT_FINAL_ASSEMBLY);
-    /*	PetscPrintf(PETSC_COMM_WORLD,"B\n");
-            MatView(B, PETSC_VIEWER_STDOUT_WORLD);
-    */
+
     MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &A);
     MatSetUp(A);
     MatSetFromOptions(A);
@@ -79,15 +76,13 @@ int main(int argc, char **args)
         {
 
             MatGetValue(B, i, j, &temp_val);
-            val = temp_val + temp_A1[i][j];
+            val = temp_val - temp_A1[i][j];
             MatSetValues(A, 1, &i, 1, &j, &val, INSERT_VALUES);
         }
     }
     MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
-    /*        PetscPrintf(PETSC_COMM_WORLD,"A\n");
-            MatView(A, PETSC_VIEWER_STDOUT_WORLD);
-    */
+
     MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, num_of_nodes, num_of_nodes, num_of_nodes, PETSC_NULL, num_of_nodes, PETSC_NULL, &G_A);
     MatSetUp(G_A);
     MatSetFromOptions(G_A);
@@ -106,10 +101,7 @@ int main(int argc, char **args)
     }
     MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
-    /*       PetscPrintf(PETSC_COMM_WORLD,"before G_A\n");
 
-           MatView(G_A, PETSC_VIEWER_STDOUT_WORLD);
-   */
     MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, num_of_nodes, num_of_nodes, num_of_nodes, PETSC_NULL, num_of_nodes, PETSC_NULL, &G_B);
     MatSetUp(G_B);
     MatSetFromOptions(G_B);
@@ -128,10 +120,7 @@ int main(int argc, char **args)
     }
     MatAssemblyBegin(G_B, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);
-    /*      PetscPrintf(PETSC_COMM_WORLD,"before G_B\n");
 
-          MatView(G_B, PETSC_VIEWER_STDOUT_WORLD);
-  */
     /******** 置一划零法 **********/
     for (int i = 0; i < n + 1; i++)
     {
@@ -152,10 +141,14 @@ int main(int argc, char **args)
     MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);
     MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
+    /*PetscObjectSetName((PetscObject)G_A, "G_A");
+    PetscObjectSetName((PetscObject)G_B, "G_B");
+    MatView(G_A, h5);
+    MatView(G_B, h5);*/
     /*     PetscPrintf(PETSC_COMM_WORLD,"AFTER G_B\n");
 
          MatView(G_B, PETSC_VIEWER_STDOUT_WORLD);
- */
+    */
     VecCreate(PETSC_COMM_WORLD, &G_q);
     VecSetSizes(G_q, PETSC_DECIDE, num_of_nodes);
     VecSetFromOptions(G_q);
@@ -193,6 +186,7 @@ int main(int argc, char **args)
     }
     VecAssemblyBegin(G_Q);
     VecAssemblyEnd(G_Q);
+
     VecAXPY(G_Q, -1, G_q);
 
     VecCreate(PETSC_COMM_WORLD, &T);
@@ -201,7 +195,6 @@ int main(int argc, char **args)
     VecCreate(PETSC_COMM_WORLD, &times);
     VecSetSizes(times, PETSC_DECIDE, 1);
     VecSetFromOptions(times);
-
     if (r == 1)
     {
         PetscViewerHDF5Open(PETSC_COMM_WORLD, FILE, FILE_MODE_READ, &h5);
@@ -211,10 +204,10 @@ int main(int argc, char **args)
         VecLoad(times, h5);
         PetscViewerDestroy(&h5);
         VecGetValues(times, 1, &index, &t);
-        PetscPrintf(PETSC_COMM_WORLD, "t:%f\n", t);
     }
     else
     {
+
         VecSet(T, 0);
         for (int i = 0; i < n + 1; i++)
         {
@@ -231,14 +224,9 @@ int main(int argc, char **args)
             val = 1;
             VecSetValues(T, 1, &i, &val, INSERT_VALUES);
         }
-        for (int i = 2 * n + 1; i < num_of_nodes - 1; i += n + 1)
-        {
-            val = 1;
-            VecSetValues(T, 1, &i, &val, INSERT_VALUES);
-        }
+
         VecAssemblyBegin(T);
         VecAssemblyEnd(T);
-        t = 0;
     }
     VecCreate(PETSC_COMM_WORLD, &temp_vec);
     VecSetSizes(temp_vec, PETSC_DECIDE, num_of_nodes);
@@ -256,7 +244,7 @@ int main(int argc, char **args)
 
     /******** ksp *********/
     KSPCreate(PETSC_COMM_WORLD, &ksp);
-    KSPSetOperators(ksp, G_A, G_A);
+    KSPSetOperators(ksp, G_B, G_B);
     KSPGetPC(ksp, &pc);
     PCSetType(pc, PCJACOBI);
     KSPSetTolerances(ksp, 1.e-10, 1.e-50, PETSC_DEFAULT, PETSC_DEFAULT);
@@ -264,10 +252,10 @@ int main(int argc, char **args)
 
     while (PetscAbsReal(t) < maxit * dt)
     {
-
+        /*tempV = PetscAbsScalar(tempNorm - norm);
+        tempNorm = norm;*/
         t += dt;
-        PetscPrintf(PETSC_COMM_WORLD, "t:%f\n", t);
-        MatMult(G_B, T, temp_vec);
+        MatMult(G_A, T, temp_vec);
         VecAXPY(temp_vec, 1, G_Q);
 
         KSPSolve(ksp, temp_vec, x); /* 求解出下一时间 */
@@ -290,6 +278,7 @@ int main(int argc, char **args)
 
         VecAssemblyBegin(T);
         VecAssemblyEnd(T);
+        /*VecNorm(T, NORM_2, &norm);*/
         iter += 1;
         if ((iter % 10) == 0)
         {
@@ -311,7 +300,7 @@ int main(int argc, char **args)
         }
     }
     PetscPrintf(PETSC_COMM_WORLD, "solution\n");
-
+    PetscPrintf(PETSC_COMM_WORLD, "iter:%d\n", iter);
     VecView(T, PETSC_VIEWER_STDOUT_WORLD);
 
     MatDestroy(&B);
