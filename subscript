@@ -2,18 +2,15 @@
 #BSUB -J final_project
 #BSUB -q ser
 #BSUB -n 1
-#BSUB -e %J-plog.err
-#BSUB -o %J-plog.out
+#BSUB -e plog
+#BSUB -o plog
 
-<<<<<<< HEAD
-./grid 
-=======
-<<<<<<< HEAD
+
 module purge
 module load intel/2018.4
 module load mpi/intel/2018.4
 
-mpirun -np 1 ./implicit.out -ksp_type gmres \
+mpirun -np 1 ./grid -h 1 -dt 1 -ksp_type gmres \
   -ksp_gmres_restart 30 -ksp_rtol 1.0e-10 \
   -ksp_atol 1.0e-50 -ksp_max_it 1500 \
   -ksp_gmres_modifiedgramschmidt \
@@ -21,8 +18,5 @@ mpirun -np 1 ./implicit.out -ksp_type gmres \
   -sub_ksp_type richardson \
   -sub_pc_type icc \
   -ksp_converged_reason \
-  -log_view > $LSB_JOBID.log 2>&1
-=======
-./grid 0.5 
->>>>>>> e22140bd86bd7c9363279563674c7217c4bca100
->>>>>>> upstream/lihongda
+  -log_view
+
