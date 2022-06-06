@@ -33,8 +33,8 @@ int main(int argc, char **args)
     PetscInt index = 0;
     PetscReal t_v, Q[4];
     PetscReal nodes[num_of_nodes][3];
-    PetscScalar data[1];
-    PetscViewer h5; 
+    PetscScalar data[3];
+    PetscViewer h5;
     PetscInt elements[num_of_elements][5];
 
     /*create nodes and elements */
@@ -69,7 +69,6 @@ int main(int argc, char **args)
     }
     MatAssemblyBegin(B, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(B, MAT_FINAL_ASSEMBLY);
-
 
     MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &A);
     MatSetUp(A);
@@ -145,7 +144,7 @@ int main(int argc, char **args)
     MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);
     MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
-    
+
     /* G_q is the heat flux */
     VecCreate(PETSC_COMM_WORLD, &G_q);
     VecSetSizes(G_q, PETSC_DECIDE, num_of_nodes);
@@ -186,7 +185,7 @@ int main(int argc, char **args)
     VecAssemblyBegin(G_Q);
     VecAssemblyEnd(G_Q);
 
-    /*merge matrixes in the right of the equation */ 
+    /*merge matrixes in the right of the equation */
     VecAXPY(G_Q, -1, G_q);
 
     /* create result temperature vector and record iteration times */
@@ -194,7 +193,7 @@ int main(int argc, char **args)
     VecSetSizes(T, PETSC_DECIDE, num_of_nodes);
     VecSetFromOptions(T);
     VecCreate(PETSC_COMM_WORLD, &times);
-    VecSetSizes(times, PETSC_DECIDE, 1);
+    VecSetSizes(times, PETSC_DECIDE, 3);
     VecSetFromOptions(times);
     /* judge wether the program need restart */
     if (r == 1)
@@ -286,10 +285,14 @@ int main(int argc, char **args)
         if ((iter % 10) == 0)
         {
             data[0] = t;
+            data[1] = h;
+            data[2] = dt;
             VecSet(times, 0);
-            index = 0;
-            t_v = data[index];
-            VecSetValues(times, 1, &index, &t_v, INSERT_VALUES);
+            for (index = 0; index < 3; index++)
+            {
+                t_v = data[index];
+                VecSetValues(times, 1, &index, &t_v, INSERT_VALUES);
+            }
 
             VecAssemblyBegin(times);
             VecAssemblyEnd(times);
