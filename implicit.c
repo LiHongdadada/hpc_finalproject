@@ -266,7 +266,6 @@ int main(int argc, char **args)
     {
 
         t += dt;
-        PetscPrintf(PETSC_COMM_WORLD, "t:%f\n", t);
         MatMult(G_B, T, temp_vec);
         VecAXPY(temp_vec, 1, G_Q);
 
