@@ -34,7 +34,7 @@ int main(int argc, char **args)
     PetscInt index = 0;
     PetscReal t_v, Q[4];
     PetscReal nodes[num_of_nodes][3];
-    PetscScalar data[1];
+    PetscScalar data[3];
     PetscViewer h5; /*创建输出*/
 
     PetscInt elements[num_of_elements][5];
@@ -200,7 +200,7 @@ int main(int argc, char **args)
     ierr = VecSetSizes(T, PETSC_DECIDE, num_of_nodes);CHKERRQ(ierr);
     ierr = VecSetFromOptions(T);CHKERRQ(ierr);
     ierr = VecCreate(PETSC_COMM_WORLD, &times);CHKERRQ(ierr);
-    ierr = VecSetSizes(times, PETSC_DECIDE, 1);CHKERRQ(ierr);
+    ierr = VecSetSizes(times, PETSC_DECIDE, 3);CHKERRQ(ierr);
     ierr = VecSetFromOptions(times);CHKERRQ(ierr);
 
     if (r == 1)
@@ -267,7 +267,6 @@ int main(int argc, char **args)
     {
 
         t += dt;
-        ierr = PetscPrintf(PETSC_COMM_WORLD, "t:%f\n", t);CHKERRQ(ierr);
         ierr = MatMult(G_B, T, temp_vec);CHKERRQ(ierr);
         ierr = VecAXPY(temp_vec, 1, G_Q);CHKERRQ(ierr);
 
@@ -295,10 +294,14 @@ int main(int argc, char **args)
         if ((iter % 10) == 0)
         {
             data[0] = t;
+            data[1] = h;
+            data[2] = dt;
             ierr = VecSet(times, 0);CHKERRQ(ierr);
-            index = 0;
-            t_v = data[index];
-            ierr = VecSetValues(times, 1, &index, &t_v, INSERT_VALUES);CHKERRQ(ierr);
+            for (index = 0; index < 3; index++)
+            {
+                t_v = data[index];
+                ierr = VecSetValues(times, 1, &index, &t_v, INSERT_VALUES);CHKERRQ(ierr);
+            }
 
             ierr = VecAssemblyBegin(times);CHKERRQ(ierr);
             ierr = VecAssemblyEnd(times);CHKERRQ(ierr);
