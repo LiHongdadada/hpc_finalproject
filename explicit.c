@@ -4,7 +4,6 @@ static char help[] = "Solves a 10000x10000 linear system.\n\n";
 #include <petscmath.h>
 #include <petscsys.h>
 #include <petscviewerhdf5.h>
-
 #include <math.h>
 
 #define PI 3.14159265
@@ -21,6 +20,7 @@ int main(int argc, char **args)
     PetscReal h, dt, t = 0, val, temp_B[4][4] = {{0.1111111111, 0.0555555556, 0.0277777778, 0.0555555556}, {0.0555555556, 0.1111111111, 0.0555555556, 0.0277777778}, {0.0277777778, 0.0555555556, 0.1111111111, 0.0555555556}, {0.0555555556, 0.0277777778, 0.0555555556, 0.1111111111}};
     PetscReal temp_A1[4][4] = {{0.6666666667, -0.1666666667, -0.3333333333, -0.1666666667}, {-0.1666666667, 0.6666666667, -0.1666666667, -0.3333333333}, {-0.3333333333, -0.1666666667, 0.6666666667, -0.1666666667}, {-0.1666666667, -0.3333333333, -0.1666666667, 0.6666666667}};
     comm = MPI_COMM_WORLD;
+    /*get parameters from command line */
     PetscOptionsGetReal(NULL, NULL, "-h", &h, NULL);
     PetscOptionsGetReal(NULL, NULL, "-dt", &dt, NULL);
     PetscOptionsGetInt(NULL, NULL, "-maxit", &maxit, NULL);
@@ -33,10 +33,11 @@ int main(int argc, char **args)
     PetscInt index = 0;
     PetscReal t_v, Q[4];
     PetscReal nodes[num_of_nodes][3];
-    PetscScalar data[1];
-    PetscViewer h5; /*创建输出*/
+    PetscScalar data[3];
+    PetscViewer h5;
     PetscInt elements[num_of_elements][5];
 
+    /*create nodes and elements */
     for (int i = 0; i < num_of_nodes; i++)
     {
         int a = i / (n + 1);
@@ -53,6 +54,8 @@ int main(int argc, char **args)
         elements[i][3] = i + a + n + 2;
         elements[i][4] = i + a + n + 1;
     }
+
+    /* create each matrix. B is the matrix before time. */
     MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &B);
     MatSetUp(B);
     MatSetFromOptions(B);
@@ -82,7 +85,7 @@ int main(int argc, char **args)
     }
     MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
-
+    /* G_* is the global matrix */
     MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, num_of_nodes, num_of_nodes, num_of_nodes, PETSC_NULL, num_of_nodes, PETSC_NULL, &G_A);
     MatSetUp(G_A);
     MatSetFromOptions(G_A);
@@ -121,7 +124,7 @@ int main(int argc, char **args)
     MatAssemblyBegin(G_B, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);
 
-    /******** 置一划零法 **********/
+    /*add boundary condition*/
     for (int i = 0; i < n + 1; i++)
     {
         MatZeroRows(G_B, 1, &i, 1, 0, 0);
@@ -141,14 +144,8 @@ int main(int argc, char **args)
     MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);
     MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
-    /*PetscObjectSetName((PetscObject)G_A, "G_A");
-    PetscObjectSetName((PetscObject)G_B, "G_B");
-    MatView(G_A, h5);
-    MatView(G_B, h5);*/
-    /*     PetscPrintf(PETSC_COMM_WORLD,"AFTER G_B\n");
 
-         MatView(G_B, PETSC_VIEWER_STDOUT_WORLD);
-    */
+    /* G_q is the heat flux */
     VecCreate(PETSC_COMM_WORLD, &G_q);
     VecSetSizes(G_q, PETSC_DECIDE, num_of_nodes);
     VecSetFromOptions(G_q);
@@ -161,6 +158,7 @@ int main(int argc, char **args)
     VecAssemblyBegin(G_q);
     VecAssemblyEnd(G_q);
 
+    /*G_Q is the heat source */
     VecCreate(PETSC_COMM_WORLD, &G_Q);
     VecSetSizes(G_Q, PETSC_DECIDE, num_of_nodes);
     VecSetFromOptions(G_Q);
@@ -187,14 +185,17 @@ int main(int argc, char **args)
     VecAssemblyBegin(G_Q);
     VecAssemblyEnd(G_Q);
 
+    /*merge matrixes in the right of the equation */
     VecAXPY(G_Q, -1, G_q);
 
+    /* create result temperature vector and record iteration times */
     VecCreate(PETSC_COMM_WORLD, &T);
     VecSetSizes(T, PETSC_DECIDE, num_of_nodes);
     VecSetFromOptions(T);
     VecCreate(PETSC_COMM_WORLD, &times);
-    VecSetSizes(times, PETSC_DECIDE, 1);
+    VecSetSizes(times, PETSC_DECIDE, 3);
     VecSetFromOptions(times);
+    /* judge wether the program need restart */
     if (r == 1)
     {
         PetscViewerHDF5Open(PETSC_COMM_WORLD, FILE, FILE_MODE_READ, &h5);
@@ -228,6 +229,7 @@ int main(int argc, char **args)
         VecAssemblyBegin(T);
         VecAssemblyEnd(T);
     }
+    /* create some temporary vector */
     VecCreate(PETSC_COMM_WORLD, &temp_vec);
     VecSetSizes(temp_vec, PETSC_DECIDE, num_of_nodes);
     VecSetFromOptions(temp_vec);
@@ -242,7 +244,7 @@ int main(int argc, char **args)
     VecAssemblyBegin(x);
     VecAssemblyEnd(x);
 
-    /******** ksp *********/
+    /*ksp */
     KSPCreate(PETSC_COMM_WORLD, &ksp);
     KSPSetOperators(ksp, G_B, G_B);
     KSPGetPC(ksp, &pc);
@@ -258,8 +260,8 @@ int main(int argc, char **args)
         MatMult(G_A, T, temp_vec);
         VecAXPY(temp_vec, 1, G_Q);
 
-        KSPSolve(ksp, temp_vec, x); /* 求解出下一时间 */
-        VecCopy(x, T);              /* 求解后的结果传到T作为初始值 */
+        KSPSolve(ksp, temp_vec, x); /* solve equation */
+        VecCopy(x, T);              /* transfer it to result vector */
         for (int i = 0; i < n + 1; i++)
         {
             val = 1;
@@ -283,10 +285,14 @@ int main(int argc, char **args)
         if ((iter % 10) == 0)
         {
             data[0] = t;
+            data[1] = h;
+            data[2] = dt;
             VecSet(times, 0);
-            index = 0;
-            t_v = data[index];
-            VecSetValues(times, 1, &index, &t_v, INSERT_VALUES);
+            for (index = 0; index < 3; index++)
+            {
+                t_v = data[index];
+                VecSetValues(times, 1, &index, &t_v, INSERT_VALUES);
+            }
 
             VecAssemblyBegin(times);
             VecAssemblyEnd(times);
@@ -299,6 +305,7 @@ int main(int argc, char **args)
             PetscViewerDestroy(&h5);
         }
     }
+    /*show results */
     PetscPrintf(PETSC_COMM_WORLD, "solution\n");
     PetscPrintf(PETSC_COMM_WORLD, "iter:%d\n", iter);
     VecView(T, PETSC_VIEWER_STDOUT_WORLD);

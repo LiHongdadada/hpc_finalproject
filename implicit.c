@@ -33,7 +33,7 @@ int main(int argc, char **args)
     PetscInt index = 0;
     PetscReal t_v, Q[4];
     PetscReal nodes[num_of_nodes][3];
-    PetscScalar data[1];
+    PetscScalar data[3];
     PetscViewer h5; /*创建输出*/
 
     PetscInt elements[num_of_elements][5];
@@ -199,7 +199,7 @@ int main(int argc, char **args)
     VecSetSizes(T, PETSC_DECIDE, num_of_nodes);
     VecSetFromOptions(T);
     VecCreate(PETSC_COMM_WORLD, &times);
-    VecSetSizes(times, PETSC_DECIDE, 1);
+    VecSetSizes(times, PETSC_DECIDE, 3);
     VecSetFromOptions(times);
 
     if (r == 1)
@@ -266,7 +266,6 @@ int main(int argc, char **args)
     {
 
         t += dt;
-        PetscPrintf(PETSC_COMM_WORLD, "t:%f\n", t);
         MatMult(G_B, T, temp_vec);
         VecAXPY(temp_vec, 1, G_Q);
 
@@ -294,10 +293,14 @@ int main(int argc, char **args)
         if ((iter % 10) == 0)
         {
             data[0] = t;
+            data[1] = h;
+            data[2] = dt;
             VecSet(times, 0);
-            index = 0;
-            t_v = data[index];
-            VecSetValues(times, 1, &index, &t_v, INSERT_VALUES);
+            for (index = 0; index < 3; index++)
+            {
+                t_v = data[index];
+                VecSetValues(times, 1, &index, &t_v, INSERT_VALUES);
+            }
 
             VecAssemblyBegin(times);
             VecAssemblyEnd(times);
