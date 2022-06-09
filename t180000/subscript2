@@ -1,0 +1,14 @@
+#!/bin/bash
+#BSUB -J final_project
+#BSUB -q ser
+#BSUB -e plog
+#BSUB -o plog
+#BSUB -n 1
+module load intel/2018.4
+module load mpi/intel/2018.4
+
+#mpirun -np 1 ./grid.out -h 0.5 -dt 0.1 ##-maxit 2
+#mpirun -np 1 ./g1 -h 0.01 -dt 0.00001
+#mpirun -np 1 ./g5 -h 0.02 -dt 0.00001 -maxit 200
+mpirun -np 1 ./implicit -h 0.01 -dt 0.000001 -maxit 180000 -restart 1 
+

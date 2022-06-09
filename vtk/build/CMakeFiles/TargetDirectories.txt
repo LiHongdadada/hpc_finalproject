@@ -1,0 +1,3 @@
+/work/mae-mawb/hpc_finalproject/vtk/build/CMakeFiles/rebuild_cache.dir
+/work/mae-mawb/hpc_finalproject/vtk/build/CMakeFiles/vtkdemo.dir
+/work/mae-mawb/hpc_finalproject/vtk/build/CMakeFiles/edit_cache.dir

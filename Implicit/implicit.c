@@ -5,6 +5,8 @@ static char help[] = "Solves a 10000x10000 linear system.\n\n";
 #include <petscsys.h>
 #include <petscviewerhdf5.h>
 #include <math.h>
+#include <assert.h>
+
 /* define constants */
 #define PI 3.14159265
 #define FILE "implicit.h5"
@@ -25,9 +27,12 @@ int main(int argc, char **args)
     comm = MPI_COMM_WORLD;
     /*get parameters from command line */
     PetscOptionsGetReal(NULL, NULL, "-h", &h, NULL);        /* space step */
+    assert(h > 0.00001);                                    /* if h less than this number, the dimension of gloabl matrix will be too large.*/
     PetscOptionsGetReal(NULL, NULL, "-dt", &dt, NULL);      /* time step */
+    assert(dt <= 0.000001);                                 /*judge time step, the maximum stable time step is 0.000001 */
     PetscOptionsGetInt(NULL, NULL, "-maxit", &maxit, NULL); /* maximum iteration times */
     PetscOptionsGetInt(NULL, NULL, "-restart", &r, NULL);   /* restart flag. r=1 means need restart */
+    assert(r == 1 || r == 0);                               /* r need to be 1 or 0 */
     /* Gauss integral points */
     PetscReal xi[4] = {-0.5773, 0.5773, 0.5773, -0.5773}, eta[4] = {-0.5773, -0.5773, 0.5773, 0.5773};
     PetscInt n = 1 / h;
@@ -369,6 +374,7 @@ int main(int argc, char **args)
         CHKERRQ(ierr);
         ierr = VecAssemblyEnd(T);
         CHKERRQ(ierr);
+        
         /*record data value every 10 times */
         iter += 1;
         if ((iter % 10) == 0)

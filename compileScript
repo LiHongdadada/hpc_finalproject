@@ -1,5 +1,0 @@
-#!/bin/bash
-
-module load gcc
-
-gcc -g grid.c -lm -I/work/mae-mawb/lib/HDF5-1.12.1/include/ -lhdf5 -o grid

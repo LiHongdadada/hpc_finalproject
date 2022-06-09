@@ -27,11 +27,10 @@ void add_double_PointData(vtkPointSet *const &grid_w,
 int main(int argc, char **argv)
 {
     hid_t file_id, dataset_T_id, dataset_times_id; /* identifiers */
-    herr_t status;
     double times[3];
     file_id = H5Fopen(FILE, H5F_ACC_RDWR, H5P_DEFAULT);
     dataset_times_id = H5Dopen(file_id, "/iteration_times", H5P_DEFAULT);
-    status = H5Dread(dataset_times_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, times);
+    H5Dread(dataset_times_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, times);
     float h = times[1];
     int n = 1 / h;
     int num_of_nodes = (n + 1) * (n + 1), num_of_elements = n * n;
@@ -55,7 +54,7 @@ int main(int argc, char **argv)
         elements[i][3] = i + a + n + 1;
     }
     dataset_T_id = H5Dopen(file_id, "/T", H5P_DEFAULT);
-    status = H5Dread(dataset_T_id, H5T_IEEE_F64LE, H5S_ALL, H5S_ALL, H5P_DEFAULT, T);
+    H5Dread(dataset_T_id, H5T_IEEE_F64LE, H5S_ALL, H5S_ALL, H5P_DEFAULT, T);
 
     const std::string filename("temperature");
     vtkUnstructuredGrid *grid_w = vtkUnstructuredGrid::New();
@@ -110,9 +109,9 @@ int main(int argc, char **argv)
     writer->Delete();
 
     grid_w->Delete();
-    status = H5Dclose(dataset_T_id);
-    status = H5Dclose(dataset_times_id);
-    status = H5Fclose(file_id);
+    H5Dclose(dataset_T_id);
+    H5Dclose(dataset_times_id);
+    H5Fclose(file_id);
     return 0;
 }
 void add_int_PointData(vtkPointSet *const &grid_w,
