@@ -11,13 +11,13 @@ static char help[] = "Solves a 10000x10000 linear system.\n\n";
 int main(int argc, char **args)
 {
     PetscInitialize(&argc, &args, (char *)0, help);
-    Mat G_B, G_A, B, A;
+    Mat G_B, G_A;
     Vec x, T, temp_vec, times, G_q, G_Q;
     PetscErrorCode ierr;
     KSP ksp;
     PC pc;
     MPI_Comm comm;
-    PetscInt maxit, r, row;
+    PetscInt maxit, r, row, rank;
     PetscReal h, dt, t = 0, val, temp_B[4][4] = {{0.1111111111, 0.0555555556, 0.0277777778, 0.0555555556}, {0.0555555556, 0.1111111111, 0.0555555556, 0.0277777778}, {0.0277777778, 0.0555555556, 0.1111111111, 0.0555555556}, {0.0555555556, 0.0277777778, 0.0555555556, 0.1111111111}};
     PetscReal temp_A1[4][4] = {{0.6666666667, -0.1666666667, -0.3333333333, -0.1666666667}, {-0.1666666667, 0.6666666667, -0.1666666667, -0.3333333333}, {-0.3333333333, -0.1666666667, 0.6666666667, -0.1666666667}, {-0.1666666667, -0.3333333333, -0.1666666667, 0.6666666667}};
     comm = MPI_COMM_WORLD;
@@ -26,6 +26,8 @@ int main(int argc, char **args)
     PetscOptionsGetReal(NULL, NULL, "-dt", &dt, NULL);
     PetscOptionsGetInt(NULL, NULL, "-maxit", &maxit, NULL);
     PetscOptionsGetInt(NULL, NULL, "-restart", &r, NULL);
+    ierr = MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
+    CHKERRQ(ierr);
     PetscReal xi[4] = {-0.5773, 0.5773, 0.5773, -0.5773}, eta[4] = {-0.5773, -0.5773, 0.5773, 0.5773};
     PetscInt n = 1 / h;
     PetscInt num_of_nodes = (n + 1) * (n + 1), num_of_elements = n * n;
@@ -33,7 +35,7 @@ int main(int argc, char **args)
     PetscScalar temp_val, norm = 1.0, tempNorm = 0.0, tempV = 1.0;
     PetscInt index = 0;
     PetscReal t_v, Q[4];
-    PetscReal nodes[num_of_nodes][3];
+    PetscReal nodes[num_of_nodes][3],B[4][4],A[4][4];
     PetscScalar data[3];
     PetscViewer h5;
     PetscInt elements[num_of_elements][5];
@@ -57,49 +59,22 @@ int main(int argc, char **args)
     }
 
     /* create each matrix. B is the matrix before time. */
-    ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &B);
-    CHKERRQ(ierr);
-    ierr = MatSetUp(B);
-    CHKERRQ(ierr);
-    ierr = MatSetFromOptions(B);
-    CHKERRQ(ierr);
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            B[i][j]= temp_B[i][j] * (h * h / dt);
+        }
+    }
+
 
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 4; j++)
         {
-            val = temp_B[i][j] * (h * h / dt);
-            ierr = MatSetValues(B, 1, &i, 1, &j, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
+            A[i][j] = B[i][j] - temp_A1[i][j];
         }
     }
-    ierr = MatAssemblyBegin(B, MAT_FINAL_ASSEMBLY);
-    CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(B, MAT_FINAL_ASSEMBLY);
-    CHKERRQ(ierr);
-
-    ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &A);
-    CHKERRQ(ierr);
-    ierr = MatSetUp(A);
-    CHKERRQ(ierr);
-    ierr = MatSetFromOptions(A);
-    CHKERRQ(ierr);
-    for (int i = 0; i < 4; i++)
-    {
-        for (int j = 0; j < 4; j++)
-        {
-            ierr = MatGetValue(B, i, j, &temp_val);
-            CHKERRQ(ierr);
-            val = temp_val - temp_A1[i][j];
-            ierr = MatSetValues(A, 1, &i, 1, &j, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
-        }
-    }
-
-    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
-    CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
-    CHKERRQ(ierr);
     /* G_* is the global matrix */
     ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, num_of_nodes, num_of_nodes, num_of_nodes, PETSC_NULL, num_of_nodes, PETSC_NULL, &G_A);
     CHKERRQ(ierr);
@@ -115,8 +90,7 @@ int main(int argc, char **args)
             for (int j = 0; j < 4; j++)
             {
                 PetscInt ii = elements[n][i + 1], jj = elements[n][j + 1];
-                ierr = MatGetValue(A, i, j, &temp_val);
-                CHKERRQ(ierr);
+                temp_val=A[i][j];
                 ierr = MatSetValues(G_A, 1, &ii, 1, &jj, &temp_val, ADD_VALUES);
                 CHKERRQ(ierr);
             }
@@ -140,8 +114,7 @@ int main(int argc, char **args)
             for (int j = 0; j < 4; j++)
             {
                 PetscInt ii = elements[n][i + 1], jj = elements[n][j + 1];
-                ierr = MatGetValue(B, i, j, &temp_val);
-                CHKERRQ(ierr);
+                temp_val=B[i][j];
                 ierr = MatSetValues(G_B, 1, &ii, 1, &jj, &temp_val, ADD_VALUES);
                 CHKERRQ(ierr);
             }
@@ -274,25 +247,28 @@ int main(int argc, char **args)
     else
     {
         /************温度初值************/
-        ierr = VecSet(T, 0);
-        CHKERRQ(ierr);
-        for (int i = 0; i < n + 1; i++)
+        if (rank == 0)
         {
-            val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+            ierr = VecSet(T, 0);
             CHKERRQ(ierr);
-        }
-        for (int i = n + 1; i < n * (n + 1) + 1; i += n + 1)
-        {
-            val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
-        }
-        for (int i = n * (n + 1) + 1; i < num_of_nodes; i++)
-        {
-            val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
+            for (int i = 0; i < n + 1; i++)
+            {
+                val = 1;
+                ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+                CHKERRQ(ierr);
+            }
+            for (int i = n + 1; i < n * (n + 1) + 1; i += n + 1)
+            {
+                val = 1;
+                ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+                CHKERRQ(ierr);
+            }
+            for (int i = n * (n + 1) + 1; i < num_of_nodes; i++)
+            {
+                val = 1;
+                ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+                CHKERRQ(ierr);
+            }
         }
 
         ierr = VecAssemblyBegin(T);
@@ -354,23 +330,26 @@ int main(int argc, char **args)
         CHKERRQ(ierr); /* solve equation */
         ierr = VecCopy(x, T);
         CHKERRQ(ierr); /* transfer it to result vector */
-        for (int i = 0; i < n + 1; i++)
+        if (rank == 0)
         {
-            val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
-        }
-        for (int i = n + 1; i < n * (n + 1) + 1; i += n + 1)
-        {
-            val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
-        }
-        for (int i = n * (n + 1) + 1; i < num_of_nodes; i++)
-        {
-            val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
+            for (int i = 0; i < n + 1; i++)
+            {
+                val = 1;
+                ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+                CHKERRQ(ierr);
+            }
+            for (int i = n + 1; i < n * (n + 1) + 1; i += n + 1)
+            {
+                val = 1;
+                ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+                CHKERRQ(ierr);
+            }
+            for (int i = n * (n + 1) + 1; i < num_of_nodes; i++)
+            {
+                val = 1;
+                ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+                CHKERRQ(ierr);
+            }
         }
 
         ierr = VecAssemblyBegin(T);
@@ -422,13 +401,9 @@ int main(int argc, char **args)
     ierr = VecView(T, PETSC_VIEWER_STDOUT_WORLD);
     CHKERRQ(ierr);
 
-    ierr = MatDestroy(&B);
-    CHKERRQ(ierr);
     ierr = MatDestroy(&G_A);
     CHKERRQ(ierr);
     ierr = MatDestroy(&G_B);
-    CHKERRQ(ierr);
-    ierr = MatDestroy(&A);
     CHKERRQ(ierr);
     ierr = VecDestroy(&temp_vec);
     CHKERRQ(ierr);
