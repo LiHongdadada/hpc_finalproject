@@ -374,6 +374,7 @@ int main(int argc, char **args)
         CHKERRQ(ierr);
         ierr = VecAssemblyEnd(T);
         CHKERRQ(ierr);
+        
         /*record data value every 10 times */
         iter += 1;
         if ((iter % 10) == 0)

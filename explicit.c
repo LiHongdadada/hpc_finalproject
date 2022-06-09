@@ -363,6 +363,7 @@ int main(int argc, char **args)
         ierr = VecAssemblyEnd(T);
         CHKERRQ(ierr);
         /*VecNorm(T, NORM_2, &norm);*/
+        
         /*record data value every 10 times */
         iter += 1;
         if ((iter % 10) == 0)
