@@ -1,10 +1,11 @@
 static char help[] = "Solves a 10000x10000 linear system.\n\n";
-
 #include <petscksp.h>
 #include <petscmath.h>
 #include <petscsys.h>
 #include <petscviewerhdf5.h>
 #include <math.h>
+#include <assert.h>
+
 /* define constants */
 #define PI 3.14159265
 #define FILE "explicit.h5"
@@ -25,9 +26,12 @@ int main(int argc, char **args)
     comm = MPI_COMM_WORLD;
     /*get parameters from command line */
     PetscOptionsGetReal(NULL, NULL, "-h", &h, NULL);        /* space step */
+    assert(h > 0.00001);                                    /* if h less than this number, the dimension of gloabl matrix will be too large.*/
     PetscOptionsGetReal(NULL, NULL, "-dt", &dt, NULL);      /* time step */
+    assert(dt <= 0.000001);                                 /*judge time step, the maximum stable time step is 0.000001 */
     PetscOptionsGetInt(NULL, NULL, "-maxit", &maxit, NULL); /* maximum iteration times */
     PetscOptionsGetInt(NULL, NULL, "-restart", &r, NULL);   /* restart flag. r=1 means need restart */
+    assert(r == 1 || r == 0);                               /* r need to be 1 or 0 */
     ierr = MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
     CHKERRQ(ierr);
     /* Gauss integral points */
@@ -220,7 +224,7 @@ int main(int argc, char **args)
     /*merge matrixes in the right of the equation */
     ierr = VecAXPY(G_Q, -1, G_q);
     CHKERRQ(ierr);
-    
+
     /* create result temperature vector and record iteration times */
     ierr = VecCreate(PETSC_COMM_WORLD, &T);
     CHKERRQ(ierr);
