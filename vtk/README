@@ -1,0 +1,11 @@
+#vtk
+
+enter the file build;
+
+Use "cmake .." in command line. if you use cluster, you must use "module load gcc" and "module load hdf5" in command line;
+
+after that, use "make" in command line;
+
+and you can get vtk file;
+
+open vtk with paraview.
