@@ -13,4 +13,6 @@ if " -restart 1" means restart, else do not restart;
 
 explicit.h5/implicit.h5 is the restart data file;
 
-ex_valg.sh/im_valg.sh is the subscript with valgrind to check the memory leak.
+ex_valg.sh/im_valg.sh is the subscript with valgrind to check the memory leak;
+
+vtk is used to visualization.
