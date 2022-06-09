@@ -29,15 +29,17 @@ int main(int argc, char **argv)
     hid_t file_id, dataset_T_id, dataset_times_id; /* identifiers */
     double times[3];
     file_id = H5Fopen(FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+    /* open h5 file */
     dataset_times_id = H5Dopen(file_id, "/iteration_times", H5P_DEFAULT);
     H5Dread(dataset_times_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, times);
+    /* get space step from h5 */
     float h = times[1];
     int n = 1 / h;
     int num_of_nodes = (n + 1) * (n + 1), num_of_elements = n * n;
     double T[num_of_nodes];
     float nodes[num_of_nodes][3];
     int elements[num_of_elements][4];
-
+    /* generate nodes and elements */
     for (int i = 0; i < num_of_nodes; i++)
     {
         int a = i / (n + 1);
@@ -53,21 +55,22 @@ int main(int argc, char **argv)
         elements[i][2] = i + a + n + 2;
         elements[i][3] = i + a + n + 1;
     }
+    /* get temperature */
     dataset_T_id = H5Dopen(file_id, "/T", H5P_DEFAULT);
     H5Dread(dataset_T_id, H5T_IEEE_F64LE, H5S_ALL, H5S_ALL, H5P_DEFAULT, T);
-
+    /* generate file name */
     const std::string filename("temperature");
     vtkUnstructuredGrid *grid_w = vtkUnstructuredGrid::New();
     vtkPoints *ppt = vtkPoints::New();
     ppt->SetDataTypeToDouble();
-
+    /* insert points */
     for (int i = 0; i < num_of_nodes; i++)
     {
         ppt->InsertPoint(i, nodes[i][0], nodes[i][1], nodes[i][2]);
     }
     grid_w->SetPoints(ppt);
     ppt->Delete();
-
+    /* insert elements */
     vtkCell *cl = vtkTetra::New();
     for (int ii = 0; ii < num_of_elements; ++ii)
     {
@@ -79,7 +82,7 @@ int main(int argc, char **argv)
         grid_w->InsertNextCell(cl->GetCellType(), cl->GetPointIds());
     }
     cl->Delete();
-
+    /* add node id */
     vector<int> node_id;
     for (int i = 0; i < num_of_nodes; i++)
     {
@@ -87,7 +90,7 @@ int main(int argc, char **argv)
     }
 
     add_int_PointData(grid_w, node_id, "GlobalNodeID");
-
+    /* add cell id */
     vector<int> cell_id;
     for (int i = 0; i < num_of_elements; i++)
     {
@@ -95,6 +98,7 @@ int main(int argc, char **argv)
     }
     add_int_CellData(grid_w, cell_id, "GlobalCellID");
     vector<double> Tem(num_of_nodes);
+    /* add temperature */
     memcpy(&Tem[0], T, sizeof(T));
     add_double_PointData(grid_w, Tem, "Temperature");
 
@@ -103,7 +107,7 @@ int main(int argc, char **argv)
 
     name_to_write.append(".vtk");
     writer->SetFileName(name_to_write.c_str());
-
+    /* write to file */
     writer->SetInputData(grid_w);
     writer->Write();
     writer->Delete();
