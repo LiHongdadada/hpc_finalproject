@@ -1,4 +1,5 @@
-# hpc_finalproject
+# HPC Final Project
+
 explicit.c/implicit.c is that using explicit/implicit euler method to slove problem;
 
 Makefile is used to make explicit/implicit; command line is "make explicit/implicit";

@@ -2,10 +2,10 @@
 
 enter the file build;
 
-Use "cmake .." in command line. if you use cluster, you must use "module load gcc" and "module load hdf5" in command line;
+Use "cmake .." in command line. if you use cluster, you must use "module load gcc" and "module load hdf5/1.10.4-gcc-4.8.5" in command line;
 
 after that, use "make" in command line;
 
-and you can get vtk file;
+and you can get vtkdemo file;
 
-open vtk with paraview.
+then, submit the vtkdemo using subscript in build folder. Then, program will convert the explicit.h5 in this folder to temperature.vtk file.
