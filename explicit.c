@@ -17,7 +17,7 @@ int main(int argc, char **args)
     KSP ksp;
     PC pc;
     MPI_Comm comm;
-    PetscInt maxit, r, row;
+    PetscInt maxit, r, row, rank;
     PetscReal h, dt, t = 0, val, temp_B[4][4] = {{0.1111111111, 0.0555555556, 0.0277777778, 0.0555555556}, {0.0555555556, 0.1111111111, 0.0555555556, 0.0277777778}, {0.0277777778, 0.0555555556, 0.1111111111, 0.0555555556}, {0.0555555556, 0.0277777778, 0.0555555556, 0.1111111111}};
     PetscReal temp_A1[4][4] = {{0.6666666667, -0.1666666667, -0.3333333333, -0.1666666667}, {-0.1666666667, 0.6666666667, -0.1666666667, -0.3333333333}, {-0.3333333333, -0.1666666667, 0.6666666667, -0.1666666667}, {-0.1666666667, -0.3333333333, -0.1666666667, 0.6666666667}};
     comm = MPI_COMM_WORLD;
@@ -26,6 +26,10 @@ int main(int argc, char **args)
     PetscOptionsGetReal(NULL, NULL, "-dt", &dt, NULL);
     PetscOptionsGetInt(NULL, NULL, "-maxit", &maxit, NULL);
     PetscOptionsGetInt(NULL, NULL, "-restart", &r, NULL);
+    ierr = PetscOptionsEnd();
+    CHKERRQ(ierr);
+    ierr = MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
+    CHKERRQ(ierr);
     PetscReal xi[4] = {-0.5773, 0.5773, 0.5773, -0.5773}, eta[4] = {-0.5773, -0.5773, 0.5773, 0.5773};
     PetscInt n = 1 / h;
     PetscInt num_of_nodes = (n + 1) * (n + 1), num_of_elements = n * n;
@@ -274,25 +278,28 @@ int main(int argc, char **args)
     else
     {
         /************温度初值************/
-        ierr = VecSet(T, 0);
-        CHKERRQ(ierr);
-        for (int i = 0; i < n + 1; i++)
+        if (rank == 0)
         {
-            val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+            ierr = VecSet(T, 0);
             CHKERRQ(ierr);
-        }
-        for (int i = n + 1; i < n * (n + 1) + 1; i += n + 1)
-        {
-            val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
-        }
-        for (int i = n * (n + 1) + 1; i < num_of_nodes; i++)
-        {
-            val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
+            for (int i = 0; i < n + 1; i++)
+            {
+                val = 1;
+                ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+                CHKERRQ(ierr);
+            }
+            for (int i = n + 1; i < n * (n + 1) + 1; i += n + 1)
+            {
+                val = 1;
+                ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+                CHKERRQ(ierr);
+            }
+            for (int i = n * (n + 1) + 1; i < num_of_nodes; i++)
+            {
+                val = 1;
+                ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+                CHKERRQ(ierr);
+            }
         }
 
         ierr = VecAssemblyBegin(T);
@@ -354,23 +361,26 @@ int main(int argc, char **args)
         CHKERRQ(ierr); /* solve equation */
         ierr = VecCopy(x, T);
         CHKERRQ(ierr); /* transfer it to result vector */
-        for (int i = 0; i < n + 1; i++)
+        if (rank == 0)
         {
-            val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
-        }
-        for (int i = n + 1; i < n * (n + 1) + 1; i += n + 1)
-        {
-            val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
-        }
-        for (int i = n * (n + 1) + 1; i < num_of_nodes; i++)
-        {
-            val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
+            for (int i = 0; i < n + 1; i++)
+            {
+                val = 1;
+                ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+                CHKERRQ(ierr);
+            }
+            for (int i = n + 1; i < n * (n + 1) + 1; i += n + 1)
+            {
+                val = 1;
+                ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+                CHKERRQ(ierr);
+            }
+            for (int i = n * (n + 1) + 1; i < num_of_nodes; i++)
+            {
+                val = 1;
+                ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+                CHKERRQ(ierr);
+            }
         }
 
         ierr = VecAssemblyBegin(T);
