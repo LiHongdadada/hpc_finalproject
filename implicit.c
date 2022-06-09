@@ -12,7 +12,7 @@ static char help[] = "Solves a 10000x10000 linear system.\n\n";
 int main(int argc, char **args)
 {
     PetscInitialize(&argc, &args, (char *)0, help);
-    Mat G_B, G_A, B, A;
+    Mat G_B, G_A;
     Vec x, T, temp_vec, times, G_q, G_Q;
     PetscErrorCode ierr;
     KSP ksp;
@@ -33,7 +33,7 @@ int main(int argc, char **args)
     PetscScalar temp_val;
     PetscInt index = 0;
     PetscReal t_v, Q[4];
-    PetscReal nodes[num_of_nodes][3];
+    PetscReal nodes[num_of_nodes][3],B[4][4],A[4][4];
     PetscScalar data[3];
     PetscViewer h5; /*创建输出*/
 
@@ -55,53 +55,25 @@ int main(int argc, char **args)
         elements[i][4] = i + a + n + 1;
     }
 
-    ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &B);
-    CHKERRQ(ierr);
-    ierr = MatSetUp(B);
-    CHKERRQ(ierr);
-    ierr = MatSetFromOptions(B);
-    CHKERRQ(ierr);
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 4; j++)
         {
-            val = temp_B[i][j] * (h * h / dt);
-            ierr = MatSetValues(B, 1, &i, 1, &j, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
+            B[i][j]= temp_B[i][j] * (h * h / dt);
         }
     }
-    ierr = MatAssemblyBegin(B, MAT_FINAL_ASSEMBLY);
-    CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(B, MAT_FINAL_ASSEMBLY);
-    CHKERRQ(ierr);
-    /*	PetscPrintf(PETSC_COMM_WORLD,"B\n");
-            MatView(B, PETSC_VIEWER_STDOUT_WORLD);
-    */
-    ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &A);
-    CHKERRQ(ierr);
-    ierr = MatSetUp(A);
-    CHKERRQ(ierr);
-    ierr = MatSetFromOptions(A);
-    CHKERRQ(ierr);
-    for (int i = 0; i < 4; i++)
-    {
-        for (int j = 0; j < 4; j++)
-        {
 
-            ierr = MatGetValue(B, i, j, &temp_val);
-            CHKERRQ(ierr);
-            val = temp_val + temp_A1[i][j];
-            ierr = MatSetValues(A, 1, &i, 1, &j, &val, INSERT_VALUES);
-            CHKERRQ(ierr);
+
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            A[i][j] = B[i][j] - temp_A1[i][j];
         }
     }
-    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
-    CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
-    CHKERRQ(ierr);
     /*        PetscPrintf(PETSC_COMM_WORLD,"A\n");
-            MatView(A, PETSC_VIEWER_STDOUT_WORLD);
-    */
+ *                    MatView(A, PETSC_VIEWER_STDOUT_WORLD);
+ *                        */
     ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, num_of_nodes, num_of_nodes, num_of_nodes, PETSC_NULL, num_of_nodes, PETSC_NULL, &G_A);
     CHKERRQ(ierr);
     ierr = MatSetUp(G_A);
@@ -116,8 +88,7 @@ int main(int argc, char **args)
             {
 
                 PetscInt ii = elements[n][i + 1], jj = elements[n][j + 1];
-                ierr = MatGetValue(A, i, j, &temp_val);
-                CHKERRQ(ierr);
+                temp_val=A[i][j];
                 ierr = MatSetValues(G_A, 1, &ii, 1, &jj, &temp_val, ADD_VALUES);
                 CHKERRQ(ierr);
             }
@@ -128,9 +99,9 @@ int main(int argc, char **args)
     ierr = MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
     CHKERRQ(ierr);
     /*       PetscPrintf(PETSC_COMM_WORLD,"before G_A\n");
-
-           MatView(G_A, PETSC_VIEWER_STDOUT_WORLD);
-   */
+ *
+ *                  MatView(G_A, PETSC_VIEWER_STDOUT_WORLD);
+ *                     */
     ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, num_of_nodes, num_of_nodes, num_of_nodes, PETSC_NULL, num_of_nodes, PETSC_NULL, &G_B);
     CHKERRQ(ierr);
     ierr = MatSetUp(G_B);
@@ -145,8 +116,7 @@ int main(int argc, char **args)
             {
 
                 PetscInt ii = elements[n][i + 1], jj = elements[n][j + 1];
-                ierr = MatGetValue(B, i, j, &temp_val);
-                CHKERRQ(ierr);
+                temp_val=B[i][j];
                 ierr = MatSetValues(G_B, 1, &ii, 1, &jj, &temp_val, ADD_VALUES);
                 CHKERRQ(ierr);
             }
@@ -157,9 +127,9 @@ int main(int argc, char **args)
     ierr = MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);
     CHKERRQ(ierr);
     /*      PetscPrintf(PETSC_COMM_WORLD,"before G_B\n");
-
-          MatView(G_B, PETSC_VIEWER_STDOUT_WORLD);
-  */
+ *
+ *                MatView(G_B, PETSC_VIEWER_STDOUT_WORLD);
+ *                  */
     /******** 置一划零法 **********/
     for (int i = 0; i < n + 1; i++)
     {
@@ -191,9 +161,9 @@ int main(int argc, char **args)
     ierr = MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
     CHKERRQ(ierr);
     /*     PetscPrintf(PETSC_COMM_WORLD,"AFTER G_B\n");
-
-         MatView(G_B, PETSC_VIEWER_STDOUT_WORLD);
- */
+ *
+ *              MatView(G_B, PETSC_VIEWER_STDOUT_WORLD);
+ *               */
     ierr = VecCreate(PETSC_COMM_WORLD, &G_q);
     CHKERRQ(ierr);
     ierr = VecSetSizes(G_q, PETSC_DECIDE, num_of_nodes);
@@ -430,13 +400,9 @@ int main(int argc, char **args)
     ierr = VecView(T, PETSC_VIEWER_STDOUT_WORLD);
     CHKERRQ(ierr);
 
-    ierr = MatDestroy(&B);
-    CHKERRQ(ierr);
     ierr = MatDestroy(&G_A);
     CHKERRQ(ierr);
     ierr = MatDestroy(&G_B);
-    CHKERRQ(ierr);
-    ierr = MatDestroy(&A);
     CHKERRQ(ierr);
     ierr = VecDestroy(&temp_vec);
     CHKERRQ(ierr);
@@ -452,3 +418,4 @@ int main(int argc, char **args)
     CHKERRQ(ierr);
     return ierr;
 }
+
