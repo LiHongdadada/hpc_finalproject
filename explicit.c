@@ -57,40 +57,56 @@ int main(int argc, char **args)
     }
 
     /* create each matrix. B is the matrix before time. */
-    ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &B);CHKERRQ(ierr);
-    ierr = MatSetUp(B);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(B);CHKERRQ(ierr);
+    ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &B);
+    CHKERRQ(ierr);
+    ierr = MatSetUp(B);
+    CHKERRQ(ierr);
+    ierr = MatSetFromOptions(B);
+    CHKERRQ(ierr);
 
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 4; j++)
         {
             val = temp_B[i][j] * (h * h / dt);
-            ierr = MatSetValues(B, 1, &i, 1, &j, &val, INSERT_VALUES);CHKERRQ(ierr);
+            ierr = MatSetValues(B, 1, &i, 1, &j, &val, INSERT_VALUES);
+            CHKERRQ(ierr);
         }
     }
-    ierr = MatAssemblyBegin(B, MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(B, MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(B, MAT_FINAL_ASSEMBLY);
+    CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(B, MAT_FINAL_ASSEMBLY);
+    CHKERRQ(ierr);
 
-    ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &A);CHKERRQ(ierr);
-    ierr = MatSetUp(A);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(A);CHKERRQ(ierr);
+    ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, 4, 4, 4, PETSC_NULL, 4, PETSC_NULL, &A);
+    CHKERRQ(ierr);
+    ierr = MatSetUp(A);
+    CHKERRQ(ierr);
+    ierr = MatSetFromOptions(A);
+    CHKERRQ(ierr);
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 4; j++)
         {
-            ierr = MatGetValue(B, i, j, &temp_val);CHKERRQ(ierr);
+            ierr = MatGetValue(B, i, j, &temp_val);
+            CHKERRQ(ierr);
             val = temp_val - temp_A1[i][j];
-            ierr = MatSetValues(A, 1, &i, 1, &j, &val, INSERT_VALUES);CHKERRQ(ierr);
+            ierr = MatSetValues(A, 1, &i, 1, &j, &val, INSERT_VALUES);
+            CHKERRQ(ierr);
         }
     }
 
-    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
+    CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
+    CHKERRQ(ierr);
     /* G_* is the global matrix */
-    ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, num_of_nodes, num_of_nodes, num_of_nodes, PETSC_NULL, num_of_nodes, PETSC_NULL, &G_A);CHKERRQ(ierr);
-    ierr = MatSetUp(G_A);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(G_A);CHKERRQ(ierr);
+    ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, num_of_nodes, num_of_nodes, num_of_nodes, PETSC_NULL, num_of_nodes, PETSC_NULL, &G_A);
+    CHKERRQ(ierr);
+    ierr = MatSetUp(G_A);
+    CHKERRQ(ierr);
+    ierr = MatSetFromOptions(G_A);
+    CHKERRQ(ierr);
 
     for (int n = 0; n < num_of_elements; n++)
     {
@@ -99,17 +115,24 @@ int main(int argc, char **args)
             for (int j = 0; j < 4; j++)
             {
                 PetscInt ii = elements[n][i + 1], jj = elements[n][j + 1];
-                ierr = MatGetValue(A, i, j, &temp_val);CHKERRQ(ierr);
-                ierr = MatSetValues(G_A, 1, &ii, 1, &jj, &temp_val, ADD_VALUES);CHKERRQ(ierr);
+                ierr = MatGetValue(A, i, j, &temp_val);
+                CHKERRQ(ierr);
+                ierr = MatSetValues(G_A, 1, &ii, 1, &jj, &temp_val, ADD_VALUES);
+                CHKERRQ(ierr);
             }
         }
     }
-    ierr = MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);
+    CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
+    CHKERRQ(ierr);
 
-    ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, num_of_nodes, num_of_nodes, num_of_nodes, PETSC_NULL, num_of_nodes, PETSC_NULL, &G_B);CHKERRQ(ierr);
-    ierr = MatSetUp(G_B);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(G_B);CHKERRQ(ierr);
+    ierr = MatCreateAIJ(comm, PETSC_DECIDE, PETSC_DECIDE, num_of_nodes, num_of_nodes, num_of_nodes, PETSC_NULL, num_of_nodes, PETSC_NULL, &G_B);
+    CHKERRQ(ierr);
+    ierr = MatSetUp(G_B);
+    CHKERRQ(ierr);
+    ierr = MatSetFromOptions(G_B);
+    CHKERRQ(ierr);
     for (int n = 0; n < num_of_elements; n++)
     {
         for (int i = 0; i < 4; i++)
@@ -117,51 +140,75 @@ int main(int argc, char **args)
             for (int j = 0; j < 4; j++)
             {
                 PetscInt ii = elements[n][i + 1], jj = elements[n][j + 1];
-                ierr = MatGetValue(B, i, j, &temp_val);CHKERRQ(ierr);
-                ierr = MatSetValues(G_B, 1, &ii, 1, &jj, &temp_val, ADD_VALUES);CHKERRQ(ierr);
+                ierr = MatGetValue(B, i, j, &temp_val);
+                CHKERRQ(ierr);
+                ierr = MatSetValues(G_B, 1, &ii, 1, &jj, &temp_val, ADD_VALUES);
+                CHKERRQ(ierr);
             }
         }
     }
-    ierr = MatAssemblyBegin(G_B, MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(G_B, MAT_FINAL_ASSEMBLY);
+    CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);
+    CHKERRQ(ierr);
 
     /*add boundary condition*/
     for (int i = 0; i < n + 1; i++)
     {
-        ierr = MatZeroRows(G_B, 1, &i, 1, 0, 0);CHKERRQ(ierr);
-        ierr = MatZeroRows(G_A, 1, &i, 1, 0, 0);CHKERRQ(ierr);
+        ierr = MatZeroRows(G_B, 1, &i, 1, 0, 0);
+        CHKERRQ(ierr);
+        ierr = MatZeroRows(G_A, 1, &i, 1, 0, 0);
+        CHKERRQ(ierr);
     }
     for (int i = n + 1; i < n * (n + 1) + 1; i += n + 1)
     {
-        ierr = MatZeroRows(G_B, 1, &i, 1, 0, 0);CHKERRQ(ierr);
-        ierr = MatZeroRows(G_A, 1, &i, 1, 0, 0);CHKERRQ(ierr);
+        ierr = MatZeroRows(G_B, 1, &i, 1, 0, 0);
+        CHKERRQ(ierr);
+        ierr = MatZeroRows(G_A, 1, &i, 1, 0, 0);
+        CHKERRQ(ierr);
     }
     for (int i = n * (n + 1) + 1; i < num_of_nodes; i++)
     {
-        ierr = MatZeroRows(G_B, 1, &i, 1, 0, 0);CHKERRQ(ierr);
-        ierr = MatZeroRows(G_A, 1, &i, 1, 0, 0);CHKERRQ(ierr);
+        ierr = MatZeroRows(G_B, 1, &i, 1, 0, 0);
+        CHKERRQ(ierr);
+        ierr = MatZeroRows(G_A, 1, &i, 1, 0, 0);
+        CHKERRQ(ierr);
     }
-    ierr = MatAssemblyBegin(G_B, MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(G_B, MAT_FINAL_ASSEMBLY);
+    CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(G_B, MAT_FINAL_ASSEMBLY);
+    CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(G_A, MAT_FINAL_ASSEMBLY);
+    CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(G_A, MAT_FINAL_ASSEMBLY);
+    CHKERRQ(ierr);
     /* G_q is the heat flux */
-    ierr = VecCreate(PETSC_COMM_WORLD, &G_q);CHKERRQ(ierr);
-    ierr = VecSetSizes(G_q, PETSC_DECIDE, num_of_nodes);CHKERRQ(ierr);
-    ierr = VecSetFromOptions(G_q);CHKERRQ(ierr);
-    ierr = VecSet(G_q, 0);CHKERRQ(ierr);
+    ierr = VecCreate(PETSC_COMM_WORLD, &G_q);
+    CHKERRQ(ierr);
+    ierr = VecSetSizes(G_q, PETSC_DECIDE, num_of_nodes);
+    CHKERRQ(ierr);
+    ierr = VecSetFromOptions(G_q);
+    CHKERRQ(ierr);
+    ierr = VecSet(G_q, 0);
+    CHKERRQ(ierr);
 
     for (int i = 2 * n + 1; i < num_of_nodes - 1; i += n + 1)
     {
         val = h;
-        ierr = VecSetValues(G_q, 1, &i, &val, INSERT_VALUES);CHKERRQ(ierr);
+        ierr = VecSetValues(G_q, 1, &i, &val, INSERT_VALUES);
+        CHKERRQ(ierr);
     }
-    ierr = VecAssemblyBegin(G_q);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(G_q);CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(G_q);
+    CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(G_q);
+    CHKERRQ(ierr);
     /*G_Q is the heat source */
-    ierr = VecCreate(PETSC_COMM_WORLD, &G_Q);CHKERRQ(ierr);
-    ierr = VecSetSizes(G_Q, PETSC_DECIDE, num_of_nodes);CHKERRQ(ierr);
-    ierr = VecSetFromOptions(G_Q);CHKERRQ(ierr);
+    ierr = VecCreate(PETSC_COMM_WORLD, &G_Q);
+    CHKERRQ(ierr);
+    ierr = VecSetSizes(G_Q, PETSC_DECIDE, num_of_nodes);
+    CHKERRQ(ierr);
+    ierr = VecSetFromOptions(G_Q);
+    CHKERRQ(ierr);
 
     for (int k = 0; k < num_of_elements; k++)
     {
@@ -180,106 +227,156 @@ int main(int argc, char **args)
         {
             row = elements[k][i + 1];
             val = Q[i];
-            VecSetValues(G_Q, 1, &row, &val, ADD_VALUES);CHKERRQ(ierr);
+            VecSetValues(G_Q, 1, &row, &val, ADD_VALUES);
+            CHKERRQ(ierr);
         }
     }
-    ierr = VecAssemblyBegin(G_Q);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(G_Q);CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(G_Q);
+    CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(G_Q);
+    CHKERRQ(ierr);
 
     /*merge matrixes in the right of the equation */
-    ierr = VecAXPY(G_Q, -1, G_q);CHKERRQ(ierr);
+    ierr = VecAXPY(G_Q, -1, G_q);
+    CHKERRQ(ierr);
     /* create result temperature vector and record iteration times */
-    ierr = VecCreate(PETSC_COMM_WORLD, &T);CHKERRQ(ierr);
-    ierr = VecSetSizes(T, PETSC_DECIDE, num_of_nodes);CHKERRQ(ierr);
-    ierr = VecSetFromOptions(T);CHKERRQ(ierr);
-    ierr = VecCreate(PETSC_COMM_WORLD, &times);CHKERRQ(ierr);
-    ierr = VecSetSizes(times, PETSC_DECIDE, 3);CHKERRQ(ierr);
-    ierr = VecSetFromOptions(times);CHKERRQ(ierr);
+    ierr = VecCreate(PETSC_COMM_WORLD, &T);
+    CHKERRQ(ierr);
+    ierr = VecSetSizes(T, PETSC_DECIDE, num_of_nodes);
+    CHKERRQ(ierr);
+    ierr = VecSetFromOptions(T);
+    CHKERRQ(ierr);
+    ierr = VecCreate(PETSC_COMM_WORLD, &times);
+    CHKERRQ(ierr);
+    ierr = VecSetSizes(times, PETSC_DECIDE, 3);
+    CHKERRQ(ierr);
+    ierr = VecSetFromOptions(times);
+    CHKERRQ(ierr);
 
     /* judge wether the program need restart */
     if (r == 1)
     {
-        ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, FILE, FILE_MODE_READ, &h5);CHKERRQ(ierr);
-        ierr = PetscObjectSetName((PetscObject)T, "T");CHKERRQ(ierr);
-        ierr = PetscObjectSetName((PetscObject)times, "iteration_times");CHKERRQ(ierr);
-        ierr = VecLoad(T, h5);CHKERRQ(ierr);
-        ierr = VecLoad(times, h5);CHKERRQ(ierr);
-        ierr = PetscViewerDestroy(&h5);CHKERRQ(ierr);
-        ierr = VecGetValues(times, 1, &index, &t);CHKERRQ(ierr);
+        ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, FILE, FILE_MODE_READ, &h5);
+        CHKERRQ(ierr);
+        ierr = PetscObjectSetName((PetscObject)T, "T");
+        CHKERRQ(ierr);
+        ierr = PetscObjectSetName((PetscObject)times, "iteration_times");
+        CHKERRQ(ierr);
+        ierr = VecLoad(T, h5);
+        CHKERRQ(ierr);
+        ierr = VecLoad(times, h5);
+        CHKERRQ(ierr);
+        ierr = PetscViewerDestroy(&h5);
+        CHKERRQ(ierr);
+        ierr = VecGetValues(times, 1, &index, &t);
+        CHKERRQ(ierr);
     }
     else
     {
         /************温度初值************/
-        ierr = VecSet(T, 0);CHKERRQ(ierr);
+        ierr = VecSet(T, 0);
+        CHKERRQ(ierr);
         for (int i = 0; i < n + 1; i++)
         {
             val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);CHKERRQ(ierr);
+            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+            CHKERRQ(ierr);
         }
         for (int i = n + 1; i < n * (n + 1) + 1; i += n + 1)
         {
             val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);CHKERRQ(ierr);
+            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+            CHKERRQ(ierr);
         }
         for (int i = n * (n + 1) + 1; i < num_of_nodes; i++)
         {
             val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);CHKERRQ(ierr);
+            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+            CHKERRQ(ierr);
         }
 
-        ierr = VecAssemblyBegin(T);CHKERRQ(ierr);
-        ierr = VecAssemblyEnd(T);CHKERRQ(ierr);
+        ierr = VecAssemblyBegin(T);
+        CHKERRQ(ierr);
+        ierr = VecAssemblyEnd(T);
+        CHKERRQ(ierr);
     }
 
     /* create some temporary vector */
-    ierr = VecCreate(PETSC_COMM_WORLD, &temp_vec);CHKERRQ(ierr);
-    ierr = VecSetSizes(temp_vec, PETSC_DECIDE, num_of_nodes);CHKERRQ(ierr);
-    ierr = VecSetFromOptions(temp_vec);CHKERRQ(ierr);
-    ierr = VecSet(temp_vec, 0);CHKERRQ(ierr);
-    ierr = VecAssemblyBegin(temp_vec);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(temp_vec);CHKERRQ(ierr);
+    ierr = VecCreate(PETSC_COMM_WORLD, &temp_vec);
+    CHKERRQ(ierr);
+    ierr = VecSetSizes(temp_vec, PETSC_DECIDE, num_of_nodes);
+    CHKERRQ(ierr);
+    ierr = VecSetFromOptions(temp_vec);
+    CHKERRQ(ierr);
+    ierr = VecSet(temp_vec, 0);
+    CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(temp_vec);
+    CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(temp_vec);
+    CHKERRQ(ierr);
 
-    ierr = VecCreate(PETSC_COMM_WORLD, &x);CHKERRQ(ierr);
-    ierr = VecSetSizes(x, PETSC_DECIDE, num_of_nodes);CHKERRQ(ierr);
-    ierr = VecSetFromOptions(x);CHKERRQ(ierr);
-    ierr = VecSet(x, 0);CHKERRQ(ierr);
-    ierr = VecAssemblyBegin(x);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(x);CHKERRQ(ierr);
+    ierr = VecCreate(PETSC_COMM_WORLD, &x);
+    CHKERRQ(ierr);
+    ierr = VecSetSizes(x, PETSC_DECIDE, num_of_nodes);
+    CHKERRQ(ierr);
+    ierr = VecSetFromOptions(x);
+    CHKERRQ(ierr);
+    ierr = VecSet(x, 0);
+    CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(x);
+    CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(x);
+    CHKERRQ(ierr);
 
     /******** ksp *********/
-    ierr = KSPCreate(PETSC_COMM_WORLD, &ksp);CHKERRQ(ierr);
-    ierr = KSPSetOperators(ksp, G_B, G_B);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp, &pc);CHKERRQ(ierr);
-    ierr = PCSetType(pc, PCJACOBI);CHKERRQ(ierr);
-    ierr = KSPSetTolerances(ksp, 1.e-10, 1.e-50, PETSC_DEFAULT, PETSC_DEFAULT);CHKERRQ(ierr);
-    ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
+    ierr = KSPCreate(PETSC_COMM_WORLD, &ksp);
+    CHKERRQ(ierr);
+    ierr = KSPSetOperators(ksp, G_B, G_B);
+    CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp, &pc);
+    CHKERRQ(ierr);
+    ierr = PCSetType(pc, PCJACOBI);
+    CHKERRQ(ierr);
+    ierr = KSPSetTolerances(ksp, 1.e-10, 1.e-50, PETSC_DEFAULT, PETSC_DEFAULT);
+    CHKERRQ(ierr);
+    ierr = KSPSetFromOptions(ksp);
+    CHKERRQ(ierr);
     while (PetscAbsReal(t) < maxit * dt)
     {
         /*tempV = PetscAbsScalar(tempNorm - norm);
         tempNorm = norm;*/
         t += dt;
-        ierr = MatMult(G_A, T, temp_vec);CHKERRQ(ierr);
-        ierr = VecAXPY(temp_vec, 1, G_Q);CHKERRQ(ierr);
-        ierr = KSPSolve(ksp, temp_vec, x); CHKERRQ(ierr);/* solve equation */
-        ierr = VecCopy(x, T);CHKERRQ(ierr);              /* transfer it to result vector */              
+        ierr = MatMult(G_A, T, temp_vec);
+        CHKERRQ(ierr);
+        ierr = VecAXPY(temp_vec, 1, G_Q);
+        CHKERRQ(ierr);
+        ierr = KSPSolve(ksp, temp_vec, x);
+        CHKERRQ(ierr); /* solve equation */
+        ierr = VecCopy(x, T);
+        CHKERRQ(ierr); /* transfer it to result vector */
         for (int i = 0; i < n + 1; i++)
         {
             val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);CHKERRQ(ierr);
+            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+            CHKERRQ(ierr);
         }
         for (int i = n + 1; i < n * (n + 1) + 1; i += n + 1)
         {
             val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);CHKERRQ(ierr);
+            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+            CHKERRQ(ierr);
         }
         for (int i = n * (n + 1) + 1; i < num_of_nodes; i++)
         {
             val = 1;
-            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);CHKERRQ(ierr);
+            ierr = VecSetValues(T, 1, &i, &val, INSERT_VALUES);
+            CHKERRQ(ierr);
         }
 
-        ierr = VecAssemblyBegin(T);CHKERRQ(ierr);
-        ierr = VecAssemblyEnd(T);CHKERRQ(ierr);
+        ierr = VecAssemblyBegin(T);
+        CHKERRQ(ierr);
+        ierr = VecAssemblyEnd(T);
+        CHKERRQ(ierr);
         /*VecNorm(T, NORM_2, &norm);*/
         /***********每十步迭代记录一次数据***************/
         iter += 1;
@@ -288,39 +385,62 @@ int main(int argc, char **args)
             data[0] = t;
             data[1] = h;
             data[2] = dt;
-            ierr = VecSet(times, 0);CHKERRQ(ierr);
+            ierr = VecSet(times, 0);
+            CHKERRQ(ierr);
             for (index = 0; index < 3; index++)
             {
                 t_v = data[index];
-                ierr = VecSetValues(times, 1, &index, &t_v, INSERT_VALUES);CHKERRQ(ierr);
+                ierr = VecSetValues(times, 1, &index, &t_v, INSERT_VALUES);
+                CHKERRQ(ierr);
             }
 
-            ierr = VecAssemblyBegin(times);CHKERRQ(ierr);
-            ierr = VecAssemblyEnd(times);CHKERRQ(ierr);
-            ierr = PetscViewerCreate(PETSC_COMM_WORLD, &h5);CHKERRQ(ierr);
-            ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, FILE, FILE_MODE_WRITE, &h5);CHKERRQ(ierr);
-            ierr = PetscObjectSetName((PetscObject)T, "T");CHKERRQ(ierr);
-            ierr = PetscObjectSetName((PetscObject)times, "iteration_times");CHKERRQ(ierr);
-            ierr = VecView(times, h5);CHKERRQ(ierr);
-            ierr = VecView(T, h5);CHKERRQ(ierr);
-            ierr = PetscViewerDestroy(&h5);CHKERRQ(ierr);
+            ierr = VecAssemblyBegin(times);
+            CHKERRQ(ierr);
+            ierr = VecAssemblyEnd(times);
+            CHKERRQ(ierr);
+            ierr = PetscViewerCreate(PETSC_COMM_WORLD, &h5);
+            CHKERRQ(ierr);
+            ierr = PetscViewerHDF5Open(PETSC_COMM_WORLD, FILE, FILE_MODE_WRITE, &h5);
+            CHKERRQ(ierr);
+            ierr = PetscObjectSetName((PetscObject)T, "T");
+            CHKERRQ(ierr);
+            ierr = PetscObjectSetName((PetscObject)times, "iteration_times");
+            CHKERRQ(ierr);
+            ierr = VecView(times, h5);
+            CHKERRQ(ierr);
+            ierr = VecView(T, h5);
+            CHKERRQ(ierr);
+            ierr = PetscViewerDestroy(&h5);
+            CHKERRQ(ierr);
         }
     }
     /*show results */
-    ierr = PetscPrintf(PETSC_COMM_WORLD, "solution\n");CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD, "iter:%d\n", iter);CHKERRQ(ierr);
-    ierr = VecView(T, PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD, "solution\n");
+    CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD, "iter:%d\n", iter);
+    CHKERRQ(ierr);
+    ierr = VecView(T, PETSC_VIEWER_STDOUT_WORLD);
+    CHKERRQ(ierr);
 
-
-    ierr = MatDestroy(&B);CHKERRQ(ierr);
-    ierr = MatDestroy(&G_A);CHKERRQ(ierr);
-    ierr = MatDestroy(&G_B);CHKERRQ(ierr);
-    ierr = MatDestroy(&A);CHKERRQ(ierr);
-    ierr = VecDestroy(&temp_vec);CHKERRQ(ierr);
-    ierr = VecDestroy(&T);CHKERRQ(ierr);
-    ierr = VecDestroy(&x);CHKERRQ(ierr);
-    ierr = VecDestroy(&times);CHKERRQ(ierr);
-    ierr = VecDestroy(&G_q);CHKERRQ(ierr);
-    ierr = PetscFinalize();CHKERRQ(ierr);
+    ierr = MatDestroy(&B);
+    CHKERRQ(ierr);
+    ierr = MatDestroy(&G_A);
+    CHKERRQ(ierr);
+    ierr = MatDestroy(&G_B);
+    CHKERRQ(ierr);
+    ierr = MatDestroy(&A);
+    CHKERRQ(ierr);
+    ierr = VecDestroy(&temp_vec);
+    CHKERRQ(ierr);
+    ierr = VecDestroy(&T);
+    CHKERRQ(ierr);
+    ierr = VecDestroy(&x);
+    CHKERRQ(ierr);
+    ierr = VecDestroy(&times);
+    CHKERRQ(ierr);
+    ierr = VecDestroy(&G_q);
+    CHKERRQ(ierr);
+    ierr = PetscFinalize();
+    CHKERRQ(ierr);
     return ierr;
 }
